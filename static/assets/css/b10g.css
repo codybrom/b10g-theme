@@ -795,3 +795,22 @@ html {
 .post-body figcaption a {
   color: inherit;
 }
+
+/* Consecutive notes read as a stream rather than as separate entries, so the
+   full gap between posts pushes them apart more than they deserve. Halved when a
+   note follows a note; a note next to a titled post keeps the full gap, because
+   there the break is real. */
+.postList article.post.is-note + article.post.is-note,
+.postList li.post.is-note + li.post.is-note {
+  margin-top: var(--row-gap-small);
+}
+
+/* Timestamp under a note's prev/next label. Dim and small: the words identify
+   the post, this says which of several similar ones it is. */
+.pagination-when {
+  color: var(--color-dim);
+  display: block;
+  font: var(--font-small);
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.2em;
+}

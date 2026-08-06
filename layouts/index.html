@@ -17,7 +17,7 @@
   {{ $count := .Site.Params.home_posts | default 3 }}
   {{ range first $count $posts.ByDate.Reverse }}
     {{ $p := . }}
-    <article class="post h-entry">
+    <article class="post h-entry{{ if not $p.Title }} is-note{{ end }}">
       {{ if $p.Title }}
         <header class="post-header">
           <h2 class="post-title">

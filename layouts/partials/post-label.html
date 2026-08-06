@@ -1,0 +1,31 @@
+{{/* One name for a post, wherever a name is needed: the browser tab, the social
+     card, the prev/next links.
+
+     A titled post has one. A note does not, and the fallbacks each of those
+     places used separately were poor in different ways — the site title, so
+     every note shared a headline, or a bare date, which identified the post but
+     said nothing about it. Its opening words do both, and they are what a reader
+     scanning a timeline would recognise.
+
+     Truncated on a word boundary. Callers that need a shorter one pass a length.
+
+         {{ partial "post-label.html" . }}
+         {{ partial "post-label.html" (dict "page" . "length" 60) }}
+*/}}
+{{ $page := . }}
+{{ $length := 80 }}
+{{ if reflect.IsMap . }}
+  {{ $page = .page }}
+  {{ with .length }}{{ $length = . }}{{ end }}
+{{ end }}
+
+{{ $label := "" }}
+{{ with $page.Title }}{{ $label = . | htmlUnescape }}{{ end }}
+{{ if not $label }}
+  {{ with $page.Content | plainify | htmlUnescape | chomp }}
+    {{ $label = . | truncate $length }}
+  {{ end }}
+{{ end }}
+{{/* A note with no text at all — an image on its own, say. */}}
+{{ if not $label }}{{ $label = partial "human-date.html" $page.Date }}{{ end }}
+{{ return $label }}

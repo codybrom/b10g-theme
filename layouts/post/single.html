@@ -99,7 +99,9 @@
       <li class="pagination-prev">
         <a href="{{ .Permalink }}" rel="prev">
           <span>← Older post</span>
-          <strong>{{ .Title | htmlUnescape | default (.Date.Format "January 2, 2006") }}</strong>
+          <strong>{{ partial "post-label.html" (dict "page" . "length" 56) }}</strong>
+          {{/* A note's words name it; the timestamp still says which one. */}}
+          {{ if not .Title }}<span class="pagination-when">{{ .Date.Format "Jan 2" }} · {{ .Date.Format "3:04 PM" }}</span>{{ end }}
         </a>
       </li>
     {{ end }}
@@ -107,7 +109,9 @@
       <li class="pagination-next">
         <a href="{{ .Permalink }}" rel="next">
           <span>Newer post →</span>
-          <strong>{{ .Title | htmlUnescape | default (.Date.Format "January 2, 2006") }}</strong>
+          <strong>{{ partial "post-label.html" (dict "page" . "length" 56) }}</strong>
+          {{/* A note's words name it; the timestamp still says which one. */}}
+          {{ if not .Title }}<span class="pagination-when">{{ .Date.Format "Jan 2" }} · {{ .Date.Format "3:04 PM" }}</span>{{ end }}
         </a>
       </li>
     {{ end }}

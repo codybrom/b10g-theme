@@ -1,9 +1,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {{/* A note has no title, so the tab used to read as the site name alone and
+       every open note looked identical. Its opening words name it instead, kept
+       short enough to survive a tab strip. */}}
   <title>
     {{- if .IsHome }}{{ .Site.Title }}
-    {{- else }}{{ with .Title }}{{ . | htmlUnescape }} - {{ end }}{{ .Site.Title }}{{ end -}}
+    {{- else }}{{ with partial "post-label.html" (dict "page" . "length" 60) }}{{ . }} - {{ end }}{{ .Site.Title }}{{ end -}}
   </title>
 
   <meta name="supported-color-schemes" content="light dark">
