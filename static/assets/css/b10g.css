@@ -145,6 +145,25 @@
   gap: 0.5em;
   align-items: center;
 }
+/* The gap above "Continue reading" used to come from the excerpt's last
+   paragraph, which meant it depended on whether there was one. Hugo returns a
+   summary set in front matter as a bare string with no <p> around it, while one
+   it generates from the content keeps the markup — so a post with a summary set
+   in Micro.blog had its link sitting flush against the text and every other post
+   did not. Declared here instead, so it does not matter which shape arrives.
+
+   Both selectors for the same reason as the note tags: a hidden element can hold
+   :last-child, and then the paragraph above it keeps its margin. */
+.post-excerpt > :last-child,
+.post-excerpt > p:last-of-type {
+  margin-bottom: 0;
+}
+/* Declared on the excerpt, not the link: the gap it replaces was a paragraph's
+     own bottom margin, so it has to be measured in the excerpt's font size. The
+     link is set smaller, and 1em there came out short. */
+.post-excerpt {
+  margin-bottom: 1em;
+}
 .post-link {
   display: inline-block;
 }
