@@ -2,15 +2,6 @@ MIT License
 
 Copyright (c) 2026 Cody Bromley
 
-Vendored components, each MIT licensed and copyright their own authors:
-
-  - Lume design system (static/assets/css/ds.css)
-    Copyright (c) Óscar Otero — https://github.com/lumeland/ds
-  - Lume simple-blog theme (component styles in static/assets/css/b10g.css)
-    Copyright (c) Óscar Otero — https://github.com/lumeland/theme-simple-blog
-  - @oom/mastodon-comments (static/assets/js/comments.js, forked)
-    Copyright (c) Óscar Otero — https://github.com/oom-components/mastodon-comments
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights

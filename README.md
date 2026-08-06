@@ -57,4 +57,5 @@ Things that cost real time building this:
 
 ## License
 
-MIT. See LICENSE for vendored components.
+MIT — see [LICENSE](LICENSE). Vendored components are listed in
+[THIRD-PARTY.md](THIRD-PARTY.md).
