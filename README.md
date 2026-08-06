@@ -78,63 +78,36 @@ site-specific hostnames out of it — this repo is public.
 `menu_links` (extra nav links) is a list and cannot be expressed as a form field, so
 it has to go in `config.json`.
 
-| Setting | Default |
-| --- | --- |
-| Comments API base URL | *(unset — Threads replies stay off)* |
-| Byline name | `Cody Bromley` |
-| Home page headline | b10g.xyz's tagline |
-| Posts on the home page | `3` |
-| Fallback social card image URL | *(post's first image is used)* |
-| Reply cache (seconds) | `60` |
-| Show search box | on |
-| Also embed Micro.blog's own conversation | off |
-
-`menu_links` (extra nav links) is a list and cannot be expressed as a form field —
-set it in the theme's config if you want nav entries beyond Micro.blog's own pages.
-
-## Parameters
-
-| Param | Default | Purpose |
-| --- | --- | --- |
-| `author_name` | `Cody Bromley` | Byline under each post title |
-| `welcome` | site description | Homepage headline |
-| `home_posts` | `3` | Posts on the homepage |
-| `menu_links` | RSS/Threads/Mastodon/GitHub | Nav links (`title` + `url`) |
-| `social_api_base` | `https://b10g.xyz` | Comments API origin, no trailing slash |
-| `comments_cache` | `60` | Client-side reply cache, seconds |
-| `include_conversation` | `false` | Also embed Micro.blog's own conversation.js |
-
-`author_name` is a param rather than `.Site.Author` because that variable was removed
-in Hugo 0.158; this way the theme works on the version Micro.blog runs today and on
-newer ones.
-
 ## Replies
 
 `layouts/partials/comments.html` renders the `<mastodon-comments>` element, and
 `static/assets/js/comments.js` is the b10g fork of
 [@oom/mastodon-comments](https://www.npmjs.com/package/@oom/mastodon-comments) with
-Threads support, unchanged except that the two API calls now honor an `api-base`
+Threads support — unchanged except that its two API calls honour an `api-base`
 attribute instead of assuming same-origin `/api/…`.
 
-Per-post reply URLs live in `layouts/partials/replies-map.html`, keyed by exact post
-title. The template prefers `comments_threads` / `comments_mastodon` /
-`comments_bluesky` front matter if present, and falls back to that map.
+Reply URLs come from Micro.blog's own cross-posting front matter, so posts it
+syndicates wire themselves up with nothing to maintain:
 
-Bluesky and Mastodon work with no server. Threads needs a proxy, which the existing
-Cloudflare Pages deployment at b10g.xyz already provides — it sends
-`Access-Control-Allow-Origin: *`, so `social_api_base` defaults there and no setup is
-required.
+- `.Params.threads.url` and `.Params.threads.id`
+- `.Params.mastodon.hostname` / `.username` / `.id`
+- `.Params.bluesky.link`
 
-Those endpoints live at b10g.xyz, so they disappear if that domain is repointed at
-Micro.blog. `../migration/comments-api/` holds a standby Worker for that cutover. If
-`social_api_base` is unreachable, the Threads reply link still renders but its replies
-and counts do not load.
+`.Params.threads.id` is the Threads media ID, which the theme passes through as
+`threads-id`. The proxy uses it directly instead of paging the Threads API to resolve
+a shortcode.
 
-## Leftovers
+Per-post `comments_threads` / `comments_mastodon` / `comments_bluesky` (comma
+separated) override the above.
 
-`static/assets/css/{style,normalize,highlight}.css` and
-`layouts/partials/{profile,header,navigation,post-item}.html` are from the Marfa
-scaffold this replaced. Nothing references them — safe to delete.
+Bluesky and Mastodon are fetched straight from public APIs and need no server.
+Threads requires an API token, so it needs the proxy — set **Comments API base URL**
+to reach it. Left unset, the Threads reply link still renders but its replies and
+counts do not load; nothing errors.
+
+Posts imported from elsewhere have no cross-post front matter, since Micro.blog only
+records what it syndicated itself. Those show no replies section unless the per-post
+overrides are set.
 
 ## License
 
