@@ -1,5 +1,8 @@
 {{ define "bodyClass" }}body-post{{ end }}
 {{ define "main" }}
+{{/* Hoisted: the contents list renders inside the titled-post branch, but the
+     script that drives it is emitted further down, outside that branch. */}}
+{{ $toc := .TableOfContents }}
 <article class="post h-entry" data-pagefind-body data-title="{{ .Title }}" data-pagefind-index-attrs="data-title">
   {{ if .Title }}
     <header class="post-header">
@@ -8,24 +11,31 @@
     </header>
 
     {{/* Only render a TOC when the post actually has headings. */}}
-    {{ $toc := .TableOfContents }}
     {{ if strings.Contains $toc "<li>" }}
-      <nav class="toc">
-        <h2>Table of Contents</h2>
-        {{ $toc }}
-      </nav>
+      {{/* The wrapper is what floats into the right margin above 80em. Below that
+           it is an inert div and .toc renders in flow exactly as before. It sits
+           ahead of .post-body because a float needs content to run alongside. */}}
+      <div class="toc-sidebar">
+        <nav class="toc">
+          <h2>Table of Contents</h2>
+          {{ $toc }}
+        </nav>
+      </div>
     {{ end }}
+  {{ else }}
+    {{/* No title to head the post, so the timestamp does it — in the same slot a
+         title would occupy, above the body, rather than trailing underneath. */}}
+    <header class="post-header post-header-compact">
+      {{ partial "post-meta-compact.html" . }}
+    </header>
   {{ end }}
 
   <div class="post-body body e-content">
     {{ .Content }}
   </div>
 
-  {{/* Untitled micropost: timestamp goes beneath the text, not above it. */}}
   {{ if .Title }}
     <a class="u-url" href="{{ .Permalink }}" hidden aria-hidden="true"></a>
-  {{ else }}
-    {{ partial "post-meta-compact.html" . }}
   {{ end }}
 
   {{ partial "comments.html" . }}
@@ -41,9 +51,34 @@
     <script type="module" src="{{ "assets/js/social-comments.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
   {{ end }}
 
-  {{ if .Site.Params.include_conversation }}
-    <script type="text/javascript" src="https://micro.blog/conversation.js?url={{ .Permalink }}"></script>
+  {{/* Both are modules, so they are deferred and run once the article is parsed —
+       toc.js resolves each entry against a heading further down the page, and
+       lightbox.js needs the images. */}}
+  {{ if strings.Contains $toc "<li>" }}
+    <script type="module" src="{{ "assets/js/toc.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
   {{ end }}
+  <script type="module" src="{{ "assets/js/lightbox.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
+
+  {{/* Micro.blog sends a reader back here with ?token=&username= once they have
+       signed in to reply, and conversation.js turns that into a working form.
+       Signed out it renders a disabled textarea under a sign-in prompt — an empty
+       box above a Replies section that already lists them — so it is loaded only
+       in the signed-in case; the Reply control on the card covers the other one.
+
+       Written during parse rather than appended later: conversation.js builds the
+       form with document.write, which would blank the page if it ran after load.
+       The flag is set first because the same script clears the query string as
+       soon as it runs, taking the evidence with it. */}}
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      if (!params.get("token") || !params.get("username")) return;
+      document.documentElement.dataset.replying = "";
+      document.write(
+        '<scr' + 'ipt src="https://micro.blog/conversation.js?url={{ .Permalink }}"><\/scr' + 'ipt>'
+      );
+    })();
+  </script>
 </article>
 
 {{/* Order across every post, not .PrevInSection: Micro.blog writes content to

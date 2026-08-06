@@ -24,6 +24,17 @@
     }
   </script>
 
+  {{/* Inter, the typeface ds.css already asks for first. It ships no @font-face,
+       so until now the site rendered in Inter only for people who happened to have
+       it installed locally — everyone else silently got -apple-system. Linked
+       rather than @imported so the preload scanner finds it on the first pass, and
+       preconnected so the font request starts with the connection already open.
+       Both axes are requested, so one file covers 400/600/700 and
+       font-optical-sizing can tune the display-size headings. */}}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
   {{/* Must come BEFORE b10g.css: the theme's `.search .pagefind-ui__*` rules only
        win if they are loaded after Pagefind's own stylesheet. b10g.xyz ordered them
        this way too. Loaded on every page rather than conditionally, because
@@ -46,4 +57,12 @@
   {{ partial "social-meta.html" . }}
 
   {{ partial "microblog_head.html" . }}
+
+  {{/* Micro.blog injects its own <link rel="shortcut icon"> above, pointing at the
+       favicon uploaded to the account. Declared after it so this one wins when set;
+       left unset, that default stands and nothing here renders. Upload the image
+       under Uploads and paste its URL into the plug-in setting. */}}
+  {{ with .Site.Params.favicon }}
+    <link rel="icon" href="{{ . }}">
+  {{ end }}
 </head>

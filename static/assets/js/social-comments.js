@@ -92,12 +92,22 @@ function build(mount, declared) {
   declared?.remove();
 }
 
+// A reader who has just signed in is here to write, not to read: Micro.blog has
+// bounced them back to the post with a reply form and the replies are already
+// behind them. Building the section anyway would put a wall of other people's
+// replies between the textarea and the Post button, and would spend three API
+// calls doing it. The flag is set in the page head, before conversation.js wipes
+// the query string it was read from.
+const replying = "replying" in document.documentElement.dataset;
+
 // One section per article, fed by whichever of the two markers that article has.
-const articles = new Set(
-  [...document.querySelectorAll(".replies-mount, .replies-data")].map(
-    (el) => el.closest("article") || document.body,
-  ),
-);
+const articles = replying
+  ? new Set()
+  : new Set(
+      [...document.querySelectorAll(".replies-mount, .replies-data")].map(
+        (el) => el.closest("article") || document.body,
+      ),
+    );
 for (const article of articles) {
   build(
     article.querySelector(".replies-mount"),

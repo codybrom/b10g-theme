@@ -168,8 +168,23 @@ export default class SocialComments extends HTMLElement {
         const linkStyle = `color:${color};text-decoration:none;font-size:0.8em;font-weight:600`;
         const hoverAttr = `onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"`;
         const multiUrls = allReplyUrls[k];
+        const signIns = s?.replyOptions;
         let replyRow;
-        if (multiUrls && multiUrls.length > 1) {
+        if (signIns && signIns.length > 1) {
+          // <details> rather than scripted state: the disclosure, the keyboard
+          // behaviour and the toggling are all native, and three named links in a
+          // card this narrow would wrap badly if shown up front.
+          const choices = signIns
+            .map(
+              (o) =>
+                `<a href="${o.url}" target="_blank" rel="noopener" style="${linkStyle};cursor:pointer" ${hoverAttr}>${o.name}</a>`,
+            )
+            .join("");
+          replyRow = `<details class="reply-choice" style="margin-top:auto">
+            <summary style="${linkStyle};cursor:pointer">Reply&nbsp;→</summary>
+            <div class="reply-choice-options">${choices}</div>
+          </details>`;
+        } else if (multiUrls && multiUrls.length > 1) {
           const hereLinks = multiUrls.map(
             (u) =>
               `<a href="${u}" target="_blank" rel="noopener" style="${linkStyle};cursor:pointer" ${hoverAttr}>Here&nbsp;↗</a>`,
@@ -215,9 +230,19 @@ export default class SocialComments extends HTMLElement {
       if (!match) return;
       const postId = match[1];
 
-      // Signing in is how you reply on Micro.blog, so this is the reply target.
+      // Replying means signing in, and Micro.blog accepts three identities for it.
+      // Sending everyone to /mb assumed a Micro.blog account; a reader with only a
+      // Mastodon or Bluesky one would land on a sign-in they cannot complete, so
+      // all three are offered and the reader picks.
+      const commentBase = `https://micro.blog/account/comments/${postId}`;
+      const target = `?url=${encodeURIComponent(postUrl)}`;
       this.postStats.microblog = {
-        url: `https://micro.blog/account/comments/${postId}/mb?url=${encodeURIComponent(postUrl)}`,
+        url: `${commentBase}/mb${target}`,
+        replyOptions: [
+          { name: "Micro.blog", url: `${commentBase}/mb${target}` },
+          { name: "Mastodon", url: `${commentBase}/mastodon${target}` },
+          { name: "Bluesky", url: `${commentBase}/bluesky${target}` },
+        ],
         source: "microblog",
       };
 

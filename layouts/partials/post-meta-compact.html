@@ -1,14 +1,17 @@
-{{/* Metadata line for untitled microposts. Micro.blog convention puts the timestamp
-     *under* a short post rather than heading it, so this drops the byline and
-     reading time and keeps only the permalink date plus any categories. */}}
-<div class="post-details">
-  <p>
-    <a class="u-url" href="{{ .Permalink }}">
-      <time class="dt-published" datetime="{{ .Date.Format "2006-01-02 15:04:05" }}">
-        {{ partial "human-date.html" .Date }}
-      </time>
-    </a>
-  </p>
+{{/* Heading for untitled microposts. Having no title, the timestamp stands in for
+     one: set larger than the metadata line it used to share, and placed above the
+     post so a micropost has the same shape as a titled one. Time of day is shown
+     as well as the date — these posts carry real timestamps, unlike the long-form
+     entries imported date-only. Byline and reading time stay off; they say little
+     about two sentences. */}}
+{{/* One row, so the badges sit beside the timestamp rather than below it — the
+     same shape a titled post's details line has. Wraps on narrow screens. */}}
+<div class="post-details post-details-compact">
+  <a class="u-url post-timestamp-link" href="{{ .Permalink }}">
+    <time class="dt-published post-timestamp" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+      {{ partial "human-date.html" .Date }} at {{ .Date.Format "3:04 PM" }}
+    </time>
+  </a>
 
   {{ partial "edit-link.html" . }}
 

@@ -25,6 +25,11 @@
       "placeholder": "3"
     },
     {
+      "field": "params.favicon",
+      "label": "Favicon URL",
+      "placeholder": "Leave blank to use the one set in Micro.blog"
+    },
+    {
       "field": "params.social_image",
       "label": "Fallback social card image URL",
       "placeholder": "Used when a post has no image of its own"
@@ -48,11 +53,6 @@
     {
       "field": "params.edit_links",
       "label": "Author edit links (turn on with ?edit=1)",
-      "type": "boolean"
-    },
-    {
-      "field": "params.include_conversation",
-      "label": "Embed Micro.blog's reply box",
       "type": "boolean"
     }
   ]

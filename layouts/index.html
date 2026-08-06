@@ -28,9 +28,12 @@
         <div class="post-excerpt body e-content">{{ $p.Summary }}</div>
         <a href="{{ $p.Permalink }}" class="post-link">Continue reading →</a>
       {{ else }}
-        {{/* Untitled micropost: full text first, timestamp beneath it. */}}
+        {{/* Untitled micropost: the timestamp heads the post here too, so the
+             listing reads the same whether an entry has a title or not. */}}
+        <header class="post-header post-header-compact">
+          {{ partial "post-meta-compact.html" $p }}
+        </header>
         <div class="post-excerpt body e-content">{{ $p.Content }}</div>
-        {{ partial "post-meta-compact.html" $p }}
       {{ end }}
     </article>
   {{ end }}
