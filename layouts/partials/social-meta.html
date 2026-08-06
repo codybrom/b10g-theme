@@ -1,0 +1,60 @@
+{{/* OpenGraph + Twitter card tags.
+
+     Micro.blog injects none of these itself (verified: zero og:/twitter: tags on a
+     stock build), so links shared to Threads, Mastodon, and Bluesky render with no
+     preview card. Since b10g.xyz's per-post `metas.description`/`metas.image` could
+     not survive the Markdown import — nested front matter breaks Micro.blog's
+     parser — everything here is derived from the post itself, which also means new
+     posts get cards with no extra work. */}}
+
+{{ $isPost := or (eq .Type "post") .IsPage }}
+
+{{/* Description, from Micro.blog's own fields only:
+       1. `description` front matter, if ever set
+       2. `summary` — a real per-post field Micro.blog stores and exposes (edit it in
+          the post editor); empty by default, so setting it there wins automatically
+       3. the post's own summary, which honours <!--more-->
+       4. the site description
+     No theme-side lookup table: anything authored lives in Micro.blog, not here. */}}
+{{ $desc := "" }}
+{{ with .Description }}{{ $desc = . }}{{ end }}
+{{ if not $desc }}{{ with .Params.summary }}{{ $desc = . }}{{ end }}{{ end }}
+{{ if not $desc }}{{ with .Summary }}{{ $desc = . | plainify | htmlUnescape }}{{ end }}{{ end }}
+{{ if not $desc }}{{ $desc = .Site.Params.description }}{{ end }}
+{{ $desc = $desc | plainify | htmlUnescape | chomp }}
+{{ if gt (len $desc) 300 }}{{ $desc = printf "%s…" (substr $desc 0 299) }}{{ end }}
+
+{{/* Image: Micro.blog photo param > first image in the body > site avatar. */}}
+{{ $img := "" }}
+{{ with .Params.photos }}{{ $img = index . 0 }}{{ end }}
+{{ if not $img }}{{ with .Params.images }}{{ $img = index . 0 }}{{ end }}{{ end }}
+{{ if not $img }}
+  {{/* Two-step extraction: Go's `.` does not cross newlines, and Micro.blog/Lume
+       emit <img> tags whose alt text wraps onto its own line, so a single
+       replaceRE over the whole tag silently returns the tag instead of the src. */}}
+  {{ $tags := findRE `<img[^>]+src="[^"]+"` .Content 1 }}
+  {{ with $tags }}
+    {{ $srcs := findRE `src="[^"]+"` (index . 0) 1 }}
+    {{ with $srcs }}
+      {{ $img = strings.TrimSuffix `"` (strings.TrimPrefix `src="` (index . 0)) }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ if not $img }}{{ $img = .Site.Params.social_image | default "" }}{{ end }}
+
+<meta property="og:type" content="{{ cond $isPost "article" "website" }}">
+<meta property="og:site_name" content="{{ .Site.Title }}">
+<meta property="og:locale" content="{{ .Site.Language.Lang | default "en" }}">
+<meta property="og:title" content="{{ with .Title }}{{ . | htmlUnescape }}{{ else }}{{ .Site.Title }}{{ end }}">
+{{ with $desc }}<meta property="og:description" content="{{ . }}">{{ end }}
+<meta property="og:url" content="{{ .Permalink }}">
+{{ with $img }}<meta property="og:image" content="{{ . | absURL }}">{{ end }}
+{{ if and $isPost (not .Date.IsZero) }}
+<meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+{{ end }}
+
+<meta name="twitter:card" content="{{ cond (ne $img "") "summary_large_image" "summary" }}">
+<meta name="twitter:title" content="{{ with .Title }}{{ . | htmlUnescape }}{{ else }}{{ .Site.Title }}{{ end }}">
+{{ with $desc }}<meta name="twitter:description" content="{{ . }}">{{ end }}
+{{ with $img }}<meta name="twitter:image" content="{{ . | absURL }}">{{ end }}
+{{ with $desc }}<meta name="description" content="{{ . }}">{{ end }}

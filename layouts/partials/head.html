@@ -1,0 +1,49 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    {{- if .IsHome }}{{ .Site.Title }}
+    {{- else }}{{ with .Title }}{{ . | htmlUnescape }} - {{ end }}{{ .Site.Title }}{{ end -}}
+  </title>
+
+  <meta name="supported-color-schemes" content="light dark">
+  <meta name="theme-color" content="hsl(220, 20%, 100%)" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="hsl(220, 20%, 10%)" media="(prefers-color-scheme: dark)">
+  <meta content="{{ .Site.Params.author_name | default "Cody Bromley" }}" name="author">
+
+  {{/* Applied before first paint so the dark theme never flashes. */}}
+  <script>
+    let theme = localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light");
+    document.documentElement.dataset.theme = theme;
+    function changeTheme() {
+      theme = theme === "dark" ? "light" : "dark";
+      localStorage.setItem("theme", theme);
+      document.documentElement.dataset.theme = theme;
+    }
+  </script>
+
+  {{/* Must come BEFORE b10g.css: the theme's `.search .pagefind-ui__*` rules only
+       win if they are loaded after Pagefind's own stylesheet. b10g.xyz ordered them
+       this way too. Loaded on every page rather than conditionally, because
+       .OutputFormat is not available on all page kinds. */}}
+  {{ if ne .Site.Params.search false }}
+    <link rel="stylesheet" href="/pagefind/pagefind-ui.css">
+  {{ end }}
+  <link href="{{ "assets/css/b10g.css" | relURL }}?{{ .Site.Params.theme_seconds }}" rel="stylesheet">
+
+  {{/* Micro.blog serves RSS 2.0 at /feed.xml — not Atom, as the Lume site did. */}}
+  <link rel="alternate" href="/feed.xml" type="application/rss+xml" title="{{ .Site.Title }}">
+  <link rel="alternate" href="/feed.json" type="application/json" title="{{ .Site.Title }}">
+  <link rel="canonical" href="{{ .Permalink }}">
+
+  {{/* rel=me verification, as b10g.xyz emitted via extra_head. */}}
+  {{ range .Site.Params.rel_me | default (slice "https://www.threads.net/@codybrom" "https://mstdn.social/@codybrom" "https://github.com/codybrom") }}
+    <link rel="me" href="{{ . }}">
+  {{ end }}
+
+  {{ partial "social-meta.html" . }}
+
+  {{ partial "microblog_head.html" . }}
+</head>

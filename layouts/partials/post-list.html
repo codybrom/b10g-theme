@@ -1,0 +1,12 @@
+{{/* Compact title + details listing, as used on the Lume archive/tag pages. */}}
+<ul class="postList h-feed">
+  {{ range .Pages.ByDate.Reverse }}
+    {{ $p := . }}
+    <li class="post h-entry">
+      <h2 class="post-title">
+        <a class="p-name" href="{{ $p.Permalink }}">{{ $p.Title | htmlUnescape | default ($p.Date.Format "January 2, 2006") }}</a>
+      </h2>
+      {{ partial "post-details.html" $p }}
+    </li>
+  {{ end }}
+</ul>

@@ -1,0 +1,42 @@
+{{ define "bodyClass" }}body-home{{ end }}
+{{ define "main" }}
+{{/* Micro.blog's own `description` is a "Follow @you on Micro.blog" blurb containing
+     markup — wrong content for a hero headline, and it renders as escaped tags. Use
+     the b10g.xyz tagline instead, overridable via the `welcome` param. */}}
+<header class="page-header">
+  {{ with .Site.Params.welcome | default "These are my thoughts on product, tech and design." }}
+    <h1 class="page-title">{{ . | safeHTML }}</h1>
+  {{ end }}
+
+  {{ partial "search.html" . }}
+</header>
+
+<section class="postList h-feed">
+  {{/* b10g.xyz shows the 3 most recent posts, then points at the archive. */}}
+  {{ $posts := where .Site.RegularPages "Type" "post" }}
+  {{ $count := .Site.Params.home_posts | default 3 }}
+  {{ range first $count $posts.ByDate.Reverse }}
+    {{ $p := . }}
+    <article class="post h-entry">
+      {{ if $p.Title }}
+        <header class="post-header">
+          <h2 class="post-title">
+            <a class="p-name" href="{{ $p.Permalink }}">{{ $p.Title | htmlUnescape }}</a>
+          </h2>
+          {{ partial "post-details.html" $p }}
+        </header>
+        <div class="post-excerpt body e-content">{{ $p.Summary }}</div>
+        <a href="{{ $p.Permalink }}" class="post-link">Continue reading →</a>
+      {{ else }}
+        {{/* Untitled micropost: full text first, timestamp beneath it. */}}
+        <div class="post-excerpt body e-content">{{ $p.Content }}</div>
+        {{ partial "post-meta-compact.html" $p }}
+      {{ end }}
+    </article>
+  {{ end }}
+</section>
+
+<hr>
+
+<p><a href="{{ "/archive/" | relURL }}">See all posts in the archive →</a></p>
+{{ end }}

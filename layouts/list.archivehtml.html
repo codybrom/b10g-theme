@@ -1,0 +1,75 @@
+{{/* Micro.blog renders /archive/ as the home page under a custom `archivehtml` output
+     format — same story as list.photoshtml.html. The homepage links here, so without
+     this template that link lands back on the homepage. */}}
+{{ define "bodyClass" }}body-page{{ end }}
+{{ define "main" }}
+<header class="page-header">
+  <h1 class="page-title">Archive</h1>
+
+  {{/* Feed links, as on b10g.xyz. Labelled "RSS" rather than the old site's
+       "Atom": Micro.blog serves RSS 2.0 at /feed.xml, where Lume served Atom. */}}
+  <p class="page-feeds">
+    <svg width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="3" cy="13" r="2" fill="currentColor"></circle><path d="M14 13C14 6.925 9.075 2 3 2M9 13a6 6 0 0 0-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+    Feeds:
+    <a href="{{ "/feed.xml" | relURL }}">RSS</a>, <a href="{{ "/feed.json" | relURL }}">JSON</a>
+  </p>
+
+  {{ partial "search.html" . }}
+</header>
+
+{{/* .Site.Taxonomies works on both Hugo 0.91 (what Micro.blog runs) and current
+     versions, unlike the `taxonomyTerm` kind the Blank theme uses. */}}
+{{ with .Site.Taxonomies.categories }}
+  {{/* Labelled "Tags:" to match b10g.xyz, even though these are Micro.blog
+       categories and the URLs are /categories/. The class matches the old site's
+       markup too; styling comes from the shared `.page-navigation ul` rule. */}}
+  <nav class="page-navigation">
+    <h2>Tags:</h2>
+    <ul class="page-navigation-tags">
+      {{ range $name, $taxonomy := . }}
+        <li><a class="badge" href="{{ (printf "/categories/%s/" ($name | urlize)) | relURL }}">{{ $name }}</a></li>
+      {{ end }}
+    </ul>
+  </nav>
+{{ end }}
+
+<ul class="postList h-feed">
+  {{ range (where .Site.RegularPages "Type" "post").ByDate.Reverse }}
+    {{ $p := . }}
+    <li class="post h-entry{{ if not $p.Title }} is-note{{ end }}">
+      {{ if $p.Title }}
+        <h2 class="post-title">
+          {{/* htmlUnescape after plainify, or entities render doubly escaped ("I&amp;rsquo;m"). */}}
+          <a class="p-name" href="{{ $p.Permalink }}">{{ $p.Title | htmlUnescape }}</a>
+        </h2>
+      {{ else }}
+        {{/* Untitled notes read in full here rather than as a truncated pseudo-title.
+             Anything carrying media or an embed gets a text teaser plus a Read more
+             instead, so the archive stays a scannable list rather than a gallery. */}}
+        {{ $c := $p.Content }}
+        {{ $hasMedia := false }}
+        {{ range slice "<img" "<iframe" "<video" "<audio" "<figure" "blockquote class=\"toot\"" "mastodon-comments" }}
+          {{ if strings.Contains $c . }}{{ $hasMedia = true }}{{ end }}
+        {{ end }}
+
+        {{ if $hasMedia }}
+          {{/* Drop embed/figure blocks before flattening, or their fallback text
+               ("View this post on mstdn.social ↗") leaks into the teaser. The (?s)
+               flag lets . match newlines. */}}
+          {{ $teaser := $c }}
+          {{ $teaser = replaceRE `(?s)<blockquote class="toot".*?</blockquote>` "" $teaser }}
+          {{ $teaser = replaceRE `(?s)<figure.*?</figure>` "" $teaser }}
+          <div class="post-body body e-content">
+            <p>{{ $teaser | plainify | htmlUnescape | truncate 240 }}</p>
+          </div>
+          <a href="{{ $p.Permalink }}" class="post-link">Read more →</a>
+        {{ else }}
+          <div class="post-body body e-content">{{ $c }}</div>
+          <a class="u-url" href="{{ $p.Permalink }}" hidden aria-hidden="true"></a>
+        {{ end }}
+      {{ end }}
+      {{ partial "post-details.html" $p }}
+    </li>
+  {{ end }}
+</ul>
+{{ end }}

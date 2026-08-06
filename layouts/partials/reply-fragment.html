@@ -1,0 +1,29 @@
+{{/* One platform's reply links, capped at 3 — mirrors platformReplyFragment() from the Lume config.
+     1 url   -> "Threads ↗"
+     2+ urls -> "Threads: Here ↗ or Here ↗" */}}
+{{ $name := .name }}
+{{ $urls := first 3 .urls }}
+{{ $style := `style="cursor:pointer"` }}
+{{ $out := "" }}
+
+{{ if eq (len $urls) 1 }}
+  {{ $out = printf `<a href="%s" %s>%s ↗</a>` (trim (index $urls 0) " ") $style $name }}
+{{ else }}
+  {{ $links := slice }}
+  {{ range $urls }}
+    {{ $links = $links | append (printf `<a href="%s" %s>Here ↗</a>` (trim . " ") $style) }}
+  {{ end }}
+  {{ $joined := "" }}
+  {{ range $i, $l := $links }}
+    {{ if eq $i 0 }}
+      {{ $joined = $l }}
+    {{ else if eq $i (sub (len $links) 1) }}
+      {{ $joined = printf "%s or %s" $joined $l }}
+    {{ else }}
+      {{ $joined = printf "%s, %s" $joined $l }}
+    {{ end }}
+  {{ end }}
+  {{ $out = printf "%s: %s" $name $joined }}
+{{ end }}
+
+{{ return $out }}

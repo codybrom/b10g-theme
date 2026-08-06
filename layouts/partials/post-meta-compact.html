@@ -1,0 +1,20 @@
+{{/* Metadata line for untitled microposts. Micro.blog convention puts the timestamp
+     *under* a short post rather than heading it, so this drops the byline and
+     reading time and keeps only the permalink date plus any categories. */}}
+<div class="post-details">
+  <p>
+    <a class="u-url" href="{{ .Permalink }}">
+      <time class="dt-published" datetime="{{ .Date.Format "2006-01-02 15:04:05" }}">
+        {{ partial "human-date.html" .Date }}
+      </time>
+    </a>
+  </p>
+
+  {{ with .Params.categories }}
+    <div class="post-tags">
+      {{ range . }}
+        <a class="badge" href="{{ (printf "/categories/%s/" (. | urlize)) | relURL }}">{{ . }}</a>
+      {{ end }}
+    </div>
+  {{ end }}
+</div>

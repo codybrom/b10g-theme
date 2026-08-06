@@ -1,0 +1,9 @@
+{{ define "bodyClass" }}body-page{{ end }}
+{{ define "main" }}
+<header class="page-header">
+  <h1 class="page-title">{{ .Title | htmlUnescape }}</h1>
+  {{ with .Content }}<div class="body">{{ . }}</div>{{ end }}
+</header>
+
+{{ partial "post-list.html" . }}
+{{ end }}

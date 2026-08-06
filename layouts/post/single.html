@@ -1,0 +1,69 @@
+{{ define "bodyClass" }}body-post{{ end }}
+{{ define "main" }}
+<article class="post h-entry" data-pagefind-body data-title="{{ .Title }}" data-pagefind-index-attrs="data-title">
+  {{ if .Title }}
+    <header class="post-header">
+      <h1 class="post-title p-name">{{ .Title | htmlUnescape }}</h1>
+      {{ partial "post-details.html" . }}
+    </header>
+
+    {{/* Only render a TOC when the post actually has headings. */}}
+    {{ $toc := .TableOfContents }}
+    {{ if strings.Contains $toc "<li>" }}
+      <nav class="toc">
+        <h2>Table of Contents</h2>
+        {{ $toc }}
+      </nav>
+    {{ end }}
+  {{ end }}
+
+  <div class="post-body body e-content">
+    {{ .Content }}
+  </div>
+
+  {{/* Untitled micropost: timestamp goes beneath the text, not above it. */}}
+  {{ if .Title }}
+    <a class="u-url" href="{{ .Permalink }}" hidden aria-hidden="true"></a>
+  {{ else }}
+    {{ partial "post-meta-compact.html" . }}
+  {{ end }}
+
+  {{ partial "comments.html" . }}
+
+  {{ if .Site.Params.include_conversation }}
+    <script type="text/javascript" src="https://micro.blog/conversation.js?url={{ .Permalink }}"></script>
+  {{ end }}
+</article>
+
+{{/* Order across every post, not .PrevInSection: Micro.blog writes content to
+     /YYYY/MM/DD/, so each year is its own Hugo section and section-scoped
+     navigation silently dead-ends at every year boundary. Sorted ascending, so
+     Prev is the older post and Next the newer one. */}}
+{{ $posts := (where .Site.RegularPages "Type" "post").ByDate }}
+{{/* Counter-intuitive but verified: on a date-ascending collection Hugo's .Prev
+     returns the NEWER page and .Next the OLDER one. Named here by what they are. */}}
+{{ $prev := $posts.Next . }}
+{{ $next := $posts.Prev . }}
+{{ if or $prev $next }}
+<nav class="page-pagination pagination">
+  <ul>
+    {{ with $prev }}
+      <li class="pagination-prev">
+        <a href="{{ .Permalink }}" rel="prev">
+          <span>← Older post</span>
+          <strong>{{ .Title | htmlUnescape | default (.Date.Format "January 2, 2006") }}</strong>
+        </a>
+      </li>
+    {{ end }}
+    {{ with $next }}
+      <li class="pagination-next">
+        <a href="{{ .Permalink }}" rel="next">
+          <span>Newer post →</span>
+          <strong>{{ .Title | htmlUnescape | default (.Date.Format "January 2, 2006") }}</strong>
+        </a>
+      </li>
+    {{ end }}
+  </ul>
+</nav>
+{{ end }}
+{{ end }}

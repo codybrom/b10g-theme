@@ -1,0 +1,29 @@
+{{/* Pagefind search, restored from b10g.xyz.
+
+     Micro.blog runs Pagefind on every publish (visible as "Pagefind: Running" in
+     Account → View logs) and serves the full bundle at /pagefind/, so this works
+     with no build step of our own. Options match what b10g.xyz used.
+
+     Set `search: false` in site params to remove it. */}}
+{{ if ne .Site.Params.search false }}
+  {{/* pagefind-ui.css is loaded from head.html *before* b10g.css, matching how
+       b10g.xyz ordered them. Loading it here instead puts it after the theme CSS,
+       which inverts the cascade — Pagefind's Svelte-scoped defaults then beat the
+       theme's `.search .pagefind-ui__*` overrides and the search renders unthemed. */}}
+  <div class="search" id="search"></div>
+  <script type="text/javascript" src="/pagefind/pagefind-ui.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('DOMContentLoaded', () => {
+      new PagefindUI({
+        element: "#search",
+        showImages: false,
+        excerptLength: 0,
+        showEmptyFilters: true,
+        showSubResults: false,
+        resetStyles: true,
+        bundlePath: "/pagefind/",
+        baseUrl: "/"
+      });
+    });
+  </script>
+{{ end }}

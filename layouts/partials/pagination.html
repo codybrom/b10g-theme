@@ -1,0 +1,15 @@
+{{ with .Paginator }}
+  {{ if gt .TotalPages 1 }}
+  <nav class="page-pagination pagination" role="navigation">
+    <ul>
+      {{ with .Prev }}
+        <li class="pagination-prev"><a href="{{ .URL }}" rel="prev"><strong>← Newer posts</strong></a></li>
+      {{ end }}
+      <li class="pagination-page">Page {{ .PageNumber }} of {{ .TotalPages }}</li>
+      {{ with .Next }}
+        <li class="pagination-next"><a href="{{ .URL }}" rel="next"><strong>Older posts →</strong></a></li>
+      {{ end }}
+    </ul>
+  </nav>
+  {{ end }}
+{{ end }}

@@ -1,0 +1,34 @@
+{{ define "bodyClass" }}body-post{{ end }}
+{{ define "main" }}
+<article class="post h-entry">
+  <header class="post-header">
+    {{ with .Title }}<h1 class="post-title p-name">{{ . | htmlUnescape }}</h1>{{ end }}
+    <div class="post-details">
+      <p>
+        <a class="u-url" href="{{ .Permalink }}">
+          <time class="dt-published" datetime="{{ .Date.Format "2006-01-02 15:04:05" }}">
+            {{ partial "human-date.html" .Date }}
+          </time>
+        </a>
+      </p>
+      <p>
+        Replying to:
+        {{ with .Params.reply_to_avatar }}
+          <img src="{{ . }}" width="22" height="22"
+               style="width:22px;height:22px;vertical-align:top;border-radius:11px;padding:0"
+               alt="{{ $.Params.reply_to_username }}">
+        {{ end }}
+        {{ if eq .Params.reply_to_hostname "micro.blog" }}
+          <a href="{{ .Params.reply_to_url }}" class="u-in-reply-to">@{{ .Params.reply_to_username }}</a>
+        {{ else }}
+          <a href="{{ .Params.reply_to_url }}" class="u-in-reply-to">{{ .Params.reply_to_hostname }}</a>
+        {{ end }}
+      </p>
+    </div>
+  </header>
+
+  <div class="post-body body e-content">
+    {{ .Content }}
+  </div>
+</article>
+{{ end }}

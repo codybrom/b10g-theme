@@ -1,0 +1,12 @@
+name = "b10g"
+license = "MIT"
+licenselink = "https://github.com/codybrom/b10g-microblog-theme/blob/main/LICENSE"
+description = "The b10g.xyz look ported to Micro.blog — Lume's design system, Inter, light/dark toggle, and cross-platform social replies."
+homepage = "https://b10g.xyz"
+tags = ["blog", "minimal", "dark mode", "indieweb"]
+features = ["blog", "dark mode", "social replies", "categories"]
+min_version = "0.91.0"
+
+[author]
+  name = "Cody Bromley"
+  homepage = "https://b10g.xyz"

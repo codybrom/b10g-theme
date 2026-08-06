@@ -1,0 +1,501 @@
+
+@import "ds.css";
+/* Lume's design system */
+/* Custom components */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1rem;
+  row-gap: 1rem;
+  justify-content: space-between;
+  padding: 2rem min(5vw, 5rem);
+  align-items: center;
+}
+.navbar-links {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.5rem;
+  font: var(--font-ui-bold);
+  align-items: center;
+
+  & [aria-current="page"] {
+    text-decoration: none;
+  }
+}
+.navbar-search {
+  padding: 0 1em;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.navbar-home {
+  text-decoration: none;
+}
+.page-header {
+  margin-bottom: var(--row-gap-medium);
+
+  & > p:first-child {
+    margin-top: 0;
+  }
+}
+.page-title {
+  font: var(--font-display);
+  letter-spacing: var(--font-display-spacing);
+  margin: 0;
+  text-wrap: balance;
+  color: var(--color-base);
+}
+.page-navigation {
+  margin-bottom: var(--row-gap-medium);
+
+  & ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+  }
+
+  & h2 {
+    font: var(--font-body-bold);
+    letter-spacing: var(--font-body-spacing);
+    margin: 0.5em 0;
+  }
+}
+.page-pagination {
+  border-top: solid 1px var(--color-line);
+  margin-top: var(--row-gap-medium);
+}
+.postList {
+  list-style: none;
+  padding: 0;
+
+  & article.post + article.post {
+    margin-top: var(--row-gap-medium);
+  }
+  & li.post + li.post {
+    margin-top: var(--row-gap-small);
+  }
+
+  & .post-header {
+    margin-bottom: var(--row-gap-xsmall);
+  }
+
+  & .post-details {
+    font: var(--font-small);
+  }
+
+  & .post-title {
+    font: var(--font-title);
+    letter-spacing: var(--font-title-spacing);
+    display: block;
+
+    & a {
+      text-decoration: none;
+    }
+  }
+}
+.post-header {
+  margin-bottom: var(--row-gap-small);
+}
+.post-title {
+  font: var(--font-display);
+  letter-spacing: var(--font-display-spacing);
+  margin: 0 0 0.2em;
+  text-wrap: balance;
+  color: var(--color-base);
+}
+.post-details {
+  display: flex;
+  flex-flow: row wrap;
+  row-gap: 1em;
+  column-gap: 0.5em;
+  align-items: center;
+  font: var(--font-small);
+  color: var(--color-dim);
+
+  & p {
+    margin: 0;
+  }
+
+  & p::after {
+    content: "•";
+    padding-left: 0.5em;
+    align-self: stretch;
+  }
+
+  & p:last-of-type {
+    margin-right: 0.5em;
+
+    &::after {
+      display: none;
+    }
+  }
+
+  & a {
+    color: inherit;
+  }
+}
+.post-tags {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 0.5em;
+  align-items: center;
+}
+.post-link {
+  display: inline-block;
+}
+.comments-section {
+  margin-top: 5em;
+}
+.comments-header {
+  & h2 {
+    font: var(--font-title);
+    letter-spacing: var(--font-title-spacing);
+    margin: 0;
+    color: var(--color-base);
+  }
+  & p {
+    font: var(--font-ui);
+    color: var(--color-dim);
+    margin: 0.5em 0;
+  }
+}
+.comments {
+  display: block;
+  padding: 2em;
+  margin-top: 2em;
+  background: var(--color-highlight);
+  border-radius: var(--border-radius);
+  border: solid 1px var(--color-line);
+  color: var(--color-dim);
+  font: var(--font-small);
+
+  @media (max-width: 450px) {
+    margin-left: calc(-15vw / 2);
+    margin-right: calc(-15vw / 2);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    padding: calc(15vw / 2);
+  }
+
+  & a {
+    color: currentColor;
+  }
+
+  & ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  & li {
+    container-type: inline-size;
+
+    ul {
+      margin-top: 2em;
+      padding-top: 2em;
+      border-top: solid 1px var(--color-line);
+      margin-left: min(var(--indent), 10cqw);
+    }
+  }
+
+  & li + li {
+    margin-top: 2em;
+    padding-top: 2em;
+    border-top: solid 1px var(--color-line);
+  }
+  & article {
+    max-width: 600px;
+  }
+  > ul {
+    --avatar-size: clamp(32px, 10cqw, 50px);
+    --indent: calc(var(--avatar-size) + 15px);
+  }
+
+  .comment-avatar {
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 6px;
+    float: left;
+    margin-right: 14px;
+    box-shadow: 0 0 1px #0009;
+  }
+  .comment-user {
+    text-decoration: none;
+    display: block;
+    position: relative;
+  }
+  .comment-author {
+    position: absolute;
+    left: calc(var(--avatar-size) - 15px);
+    top: calc(var(--avatar-size) - 15px);
+    background: var(--color-highlight);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    color: var(--color-primary);
+  }
+  .comment-user:hover .comment-username {
+    text-decoration: underline;
+  }
+  .comment-username {
+    margin-right: 0.5em;
+    color: var(--color-text);
+  }
+  .comment-useraddress {
+    font-style: normal;
+  }
+  .comment-time {
+    font-size: small;
+    display: flex;
+    column-gap: 0.3em;
+    align-items: center;
+
+    svg {
+      width: 1em;
+      height: 1em;
+      fill: currentColor;
+    }
+  }
+  .comment-address {
+    color: currentColor;
+    text-decoration: none;
+    display: block;
+    padding-left: var(--indent);
+    margin-top: 0.2em;
+  }
+  .comment-address:hover {
+    text-decoration: underline;
+  }
+  .comment-body {
+    margin-top: 1em;
+    margin-left: var(--indent);
+    line-height: 1.5;
+
+    .invisible {
+      display: none;
+    }
+    .ellipsis::after {
+      content: "…";
+    }
+    .mention {
+      text-decoration: none;
+      color: var(--color-text);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  .comment-body p {
+    margin: 0.5em 0 0;
+  }
+  .comment-counts {
+    display: flex;
+    column-gap: 1em;
+    font-size: small;
+
+    & svg {
+      color: var(--color-primary);
+    }
+  }
+  .comment-counts > span {
+    display: flex;
+    align-items: center;
+    column-gap: 0.3em;
+  }
+}
+/* Make the links black */
+:root {
+  --color-link: var(--color-base);
+  --color-link-hover: var(--color-dim);
+}
+/* Page layout */
+main {
+  padding: var(--row-gap-medium) 0;
+  max-width: min(100% - 15vw, 45em);
+  margin: 0 auto;
+
+  & > :first-child {
+    margin-top: 0;
+  }
+}
+/* Search tweak */
+.search {
+  margin-top: var(--row-gap-xsmall);
+}
+
+/* --- Micro.blog port ---------------------------------------------------
+   Hugo's .TableOfContents emits <nav id="TableOfContents"><ul>…, whereas the
+   Lume theme emitted a bare <ol>. Style Hugo's root list to match the original. */
+.toc > nav > ul {
+  list-style: decimal;
+  color: var(--color-dim);
+  margin: 0;
+  padding-left: 1.5em;
+}
+
+/* Photos grid for Micro.blog's /photos/ page. */
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 15px;
+}
+.photos-grid-item {
+  display: block;
+  line-height: 0;
+}
+.photos-grid-item img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-line);
+}
+
+/* Footnotes. The vendored design system styles Lume's <dl>/<dt>/<dd> footnote
+   markup; Hugo emits <section class="footnotes"><ol><li> instead, so the base
+   .footnotes rules apply but the inner ones never match. These restore the look. */
+.footnotes ol {
+  margin: 0;
+  padding-left: 1.5em;
+}
+.footnotes li {
+  margin: 0.5em 0;
+}
+.footnotes li:target {
+  outline: 1px dashed var(--color-primary);
+}
+.footnotes p {
+  margin: 0.25em 0;
+}
+.footnotes hr {
+  margin: 0 0 1em;
+}
+.footnotes .footnote-backref {
+  text-decoration: none;
+}
+
+/* Embedded Mastodon posts — {{< toot "https://instance/@user/123" >}} */
+/* Matches the .comments card, not the design system's pull-quote blockquote:
+   an embedded post is social content, so it should read like a reply card rather
+   than a quotation. Overrides ds.css's border-left accent explicitly. */
+blockquote.toot {
+  background: var(--color-highlight);
+  border: solid 1px var(--color-line);
+  border-left: solid 1px var(--color-line);
+  border-radius: var(--border-radius);
+  color: var(--color-dim);
+  font: var(--font-small);
+  margin: 2em 0;
+  padding: 2em;
+}
+
+@media (max-width: 450px) {
+  blockquote.toot { padding: calc(15vw / 2); }
+}
+.toot-author {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  gap: 0.75em;
+  text-decoration: none;
+}
+.toot-author:hover .toot-name { text-decoration: underline; }
+.toot-avatar {
+  border-radius: 6px;
+  box-shadow: 0 0 1px #0009;
+  height: clamp(32px, 10cqw, 50px);
+  object-fit: cover;
+  width: clamp(32px, 10cqw, 50px);
+}
+.toot-names { display: flex; flex-direction: column; line-height: 1.3; }
+.toot-name { color: var(--color-text); }
+.toot-handle { color: var(--color-dim); }
+.toot-content { margin-top: 1em; }
+.toot-content p { margin: 0.5em 0; }
+.toot-content :is(picture, img.custom-emoji) { vertical-align: text-bottom; }
+.toot-media { margin-top: 1em; }
+.toot-media.is-grid {
+  display: grid;
+  gap: 0.5em;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+}
+.toot-media img {
+  border: 1px solid var(--color-line);
+  border-radius: var(--border-radius);
+  max-width: 100%;
+}
+.toot-meta {
+  color: var(--color-dim);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-top: 1em;
+  text-decoration: none;
+}
+.toot-meta:hover { text-decoration: underline; }
+
+/* Feed links on the archive header, matching b10g.xyz. */
+.page-feeds {
+  align-items: center;
+  color: var(--color-dim);
+  display: flex;
+  flex-wrap: wrap;
+  font: var(--font-small);
+  gap: 0.4em;
+  margin: 0.75em 0 0;
+}
+.page-feeds svg {
+  flex: 0 0 auto;
+  height: 1em;
+  width: 1em;
+}
+
+/* --- Pagefind search -----------------------------------------------------
+   The vendored `.search .pagefind-ui__*` rules from b10g.xyz do the base theming,
+   and pagefind-ui.css is loaded before this file so they win ties. Everything below
+   is additive: contrast the original did not have, plus the bits Pagefind styles
+   itself and the design system never overrode.
+
+   Pagefind 1.4 uses Svelte-scoped selectors — `.pagefind-ui__x.svelte-j9e30.svelte-j9e30`,
+   specificity (0,3,0) — which outrank `.search .pagefind-ui__x` (0,2,0). Where a
+   property collides, #search (1,1,0) is used so no !important is needed. */
+
+:root {
+  /* Result text tracked --color-text, which reads dim against the page. */
+  --pagefind-ui-text: var(--color-base);
+  --pagefind-ui-primary: var(--color-base);
+}
+
+/* Pagefind sets background/border on the input; the browser adds its own focus
+   ring, which lands as a bright blue that clashes with the palette. */
+#search .pagefind-ui__search-input {
+  background: var(--color-highlight);
+  border: solid 1px var(--color-line);
+  color: var(--color-base);
+}
+#search .pagefind-ui__search-input:focus,
+#search .pagefind-ui__search-input:focus-visible {
+  background: var(--color-background);
+  border-color: var(--color-dim);
+  outline: solid 1px var(--color-dim);
+  outline-offset: 1px;
+}
+
+/* Excerpts inherit, so they need their own colour to stay legible. */
+#search .pagefind-ui__result-excerpt { color: var(--color-text); }
+
+/* Matches render in browser-default yellow otherwise. */
+#search mark {
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-radius: 3px;
+  color: var(--color-base);
+  padding: 0 0.15em;
+}

@@ -1,0 +1,30 @@
+<nav class="navbar">
+  <a href="/" class="navbar-home">
+    {{ with .Site.Params.logo }}{{ . | safeHTML }}{{ else }}<strong>{{ .Site.Title }}</strong>{{ end }}
+  </a>
+
+  <ul class="navbar-links">
+    {{/* Pages promoted to the nav by Micro.blog (About, Archive, …). */}}
+    {{ range .Site.Menus.main }}
+      <li>
+        <a href="{{ .URL | relLangURL }}"{{ if $.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>
+          {{ .Name }}
+        </a>
+      </li>
+    {{ end }}
+
+    {{/* No external links by default. Social profiles are declared via rel="me" in
+         head.html (what Mastodon and IndieAuth actually read) and the feeds live in
+         the /archive/ header. Add entries with the `menu_links` param — each needs
+         `title` and `url` — to put anything here. */}}
+    {{ range .Site.Params.menu_links }}
+      <li><a href="{{ .url }}">{{ .title }}</a></li>
+    {{ end }}
+
+    <li>
+      <button class="button" onclick="changeTheme()" aria-label="Toggle color theme">
+        <span class="icon">◐</span>
+      </button>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,24 @@
+{{/* Byline / date / reading time / category badges — mirrors the Lume post-details template. */}}
+<div class="post-details">
+  {{/* Sourced from the `author_name` param so the theme works on both the Hugo
+       version Micro.blog runs today and newer ones, where .Site.Author is gone. */}}
+  {{ with .Site.Params.author_name | default "Cody Bromley" }}
+    <p>by {{ . }}</p>
+  {{ end }}
+
+  <p>
+    <time datetime="{{ .Date.Format "2006-01-02 15:04:05" }}">
+      {{ partial "human-date.html" .Date }}
+    </time>
+  </p>
+
+  <p>{{ .ReadingTime }} min read</p>
+
+  {{ with .Params.categories }}
+    <div class="post-tags">
+      {{ range . }}
+        <a data-pagefind-filter="Tags" class="badge" href="{{ (printf "/categories/%s/" (. | urlize)) | relURL }}">{{ . }}</a>
+      {{ end }}
+    </div>
+  {{ end }}
+</div>

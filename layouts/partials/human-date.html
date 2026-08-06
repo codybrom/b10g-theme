@@ -1,0 +1,15 @@
+{{/* "June 26th, 2026" — matching Lume's HUMAN_DATE.
+
+     Go's time layout has no ordinal token, so a format string like
+     "January 2nd, 2006" emits a literal "nd" ("June 26nd"). Build the suffix here.
+     Takes a time value: {{ partial "human-date.html" .Date }} */}}
+{{ $day := .Day }}
+{{ $suffix := "th" }}
+{{ if not (in (slice 11 12 13) $day) }}
+  {{ $last := mod $day 10 }}
+  {{ if eq $last 1 }}{{ $suffix = "st" }}
+  {{ else if eq $last 2 }}{{ $suffix = "nd" }}
+  {{ else if eq $last 3 }}{{ $suffix = "rd" }}
+  {{ end }}
+{{ end }}
+{{ return printf "%s %d%s, %s" (.Format "January") $day $suffix (.Format "2006") }}
