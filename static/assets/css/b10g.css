@@ -776,3 +776,22 @@ html {
   color: var(--color-base);
   text-decoration: underline;
 }
+
+/* --- Figures -------------------------------------------------------------
+   What the migrated posts used to carry as a style attribute on every <figure>
+   and <figcaption>. Declaring it once means the image cap, the lightbox and the
+   centring cannot be overridden by markup pasted into a post — which is how a
+   min-width in an inline style ended up outranking the stylesheet. */
+.post-body figure {
+  margin: 1.5em 0;
+  text-align: center;
+}
+.post-body figcaption {
+  color: var(--color-dim);
+  font: var(--font-small);
+  margin-top: 0.6em;
+  text-align: center;
+}
+.post-body figcaption a {
+  color: inherit;
+}
