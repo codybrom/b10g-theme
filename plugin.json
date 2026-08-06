@@ -46,6 +46,11 @@
       "type": "boolean"
     },
     {
+      "field": "params.edit_links",
+      "label": "Author edit links (turn on with ?edit=1)",
+      "type": "boolean"
+    },
+    {
       "field": "params.include_conversation",
       "label": "Embed Micro.blog's reply box",
       "type": "boolean"

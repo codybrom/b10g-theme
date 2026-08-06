@@ -32,6 +32,12 @@ Mastodon or Bluesky, add the URLs to the post:
 Any combination works, comma-separate for more than one per platform. It renders
 nothing where you put it — the replies section is built at the end of the post.
 
+## Editing
+
+Visit any page with `?edit=1` to show an edit link on each post, linking to the
+Micro.blog editor. `?edit=0` turns them off. The setting is per-browser and visitors
+never see it.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). Vendored components are listed in

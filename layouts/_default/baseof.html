@@ -9,5 +9,10 @@
   </main>
 
   {{ partial "footer.html" . }}
+
+  {{/* Renders nothing unless the author has opted in on this browser with ?edit=1 */}}
+  {{ if .Site.Params.edit_links | default true }}
+    <script type="module" src="{{ "assets/js/edit-link.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
+  {{ end }}
 </body>
 </html>
