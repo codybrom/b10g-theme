@@ -1,5 +1,21 @@
 # b10g — a Micro.blog theme
 
+## Installing / updating
+
+Micro.blog → **Design → Edit Custom Themes → New Theme**, pick the **Blank** design,
+and clone this repository. Micro.blog downloads the files and serves them as your
+custom theme.
+
+Clone the whole repo rather than pasting individual files. Hugo parses every template
+before rendering anything, so a partial that references a file which didn't make it
+across fails the entire site build, not just one page — every outage during this
+theme's development came from a partial sync.
+
+Re-cloning is also how you take updates: Micro.blog's clone is a one-time download,
+not a live sync, so edits pushed here need re-importing (or editing in the theme
+editor).
+
+
 The [b10g.xyz](https://b10g.xyz) design, ported from Lume to Hugo for Micro.blog.
 
 Carries over [Lume's design system](https://github.com/lumeland/ds) v0.5.2 and the
