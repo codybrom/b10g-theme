@@ -1,0 +1,8 @@
+{{/* Author-only edit link, sitting in the details line beside the date and tags.
+     Hidden in the markup; edit-link.js reveals it only for a browser that has
+     opted in with ?edit=1, and resolves the editor URL on click. */}}
+{{ if .Site.Params.edit_links | default true }}
+  {{/* A span, not a <p>: .post-details suppresses the bullet on p:last-of-type, and a
+       hidden <p> would claim that and leave a stray separator for every visitor. */}}
+  <span class="post-edit-slot" hidden><a class="post-edit" data-post-url="{{ .Permalink }}" rel="nofollow" href="#">Edit</a></span>
+{{ end }}

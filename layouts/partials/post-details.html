@@ -14,6 +14,8 @@
 
   <p>{{ .ReadingTime }} min read</p>
 
+  {{ partial "edit-link.html" . }}
+
   {{ with .Params.categories }}
     <div class="post-tags">
       {{ range . }}
