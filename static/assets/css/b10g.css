@@ -763,7 +763,14 @@ html {
    footnote on a post that is often two sentences, not a second block competing
    with it. Undecorated until hovered, so the row reads as one aside rather than
    a line of links. */
-.post-body-note > :last-child {
+/* Both, because either can be the real end of a note. :last-child alone is not
+   enough: the {{< replies >}} shortcode leaves a hidden div at the end of the
+   body, and a hidden element still counts for a structural pseudo-class — so it
+   claimed :last-child and the paragraph above it kept its margin. Notes with a
+   shortcode ended up with a wider gap above their tags than notes without one.
+   Same trap as the stray bullet from a hidden <p> claiming p:last-of-type. */
+.post-body-note > :last-child,
+.post-body-note > p:last-of-type {
   margin-bottom: 0;
 }
 .post-hashtags {
