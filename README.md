@@ -1,36 +1,29 @@
-# b10g
+# b10g-theme
 
-The [b10g.xyz](https://b10g.xyz) design as a Micro.blog theme. Vendors [Lume's design
-system](https://github.com/lumeland/ds) v0.5.2 and
-[simple-blog](https://github.com/lumeland/theme-simple-blog) v1.16.2 component styles
-byte-for-byte.
+The [b10g.xyz](https://b10g.xyz) Micro.blog theme.
 
 ## Install
 
-**Design → Edit Custom Themes → New Plug-in**, clone this repo, set the built-in
-design to **Blank**.
+1. **Design → Edit Custom Themes → New Theme** → clone this repo
+2. **Design → Edit Custom Themes → New Plug-in** → clone
+   [b10g-plugin](https://github.com/codybrom/b10g-plugin) for the settings form
+3. Set the built-in design to **Blank**
 
-Install as a plug-in, not a custom theme — a plug-in renders `plugin.json`'s fields
-as a settings form and stores those settings per blog, so re-cloning for updates
-doesn't wipe them. Don't install it as both; that layers duplicate templates and the
-higher layer wins silently once they drift.
+The theme stays in your theme list where you can see and select it. The plug-in
+supplies settings, which Micro.blog stores per blog — so re-cloning the theme to take
+an update never clears them. The plug-in contains no templates, so it cannot shadow
+the theme.
 
 Updates: re-clone. Micro.blog's clone is a one-time download, not a live sync.
 
+Clone the whole repo rather than pasting files. Hugo parses every template before
+rendering, so one missing partial fails the entire site build.
+
 ## Settings
 
-Under **Plug-ins → b10g**. Only the first needs setting.
-
-| Setting | Default |
-| --- | --- |
-| Comments API base URL | unset — Threads replies off |
-| Byline name | `Cody Bromley` |
-| Home page headline | b10g.xyz's tagline |
-| Posts on the home page | `3` |
-| Fallback social card image URL | post's own first image |
-| Reply cache (seconds) | `60` |
-| Show search box | on |
-| Also embed Micro.blog's conversation | off |
+Set them under **Plug-ins → b10g settings** (see
+[b10g-plugin](https://github.com/codybrom/b10g-plugin)). Only the comments API base
+URL needs setting; everything else falls through to a default in the templates.
 
 `menu_links` is a list, so it can't be a form field — set it in `config.json`.
 
