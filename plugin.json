@@ -1,5 +1,49 @@
 {
 	"version": "1.0.0",
 	"title": "b10g",
-	"description": "The b10g.xyz look ported to Micro.blog, with Threads/Mastodon/Bluesky replies."
+	"description": "The b10g.xyz look ported to Micro.blog, with Threads/Mastodon/Bluesky replies.",
+	"fields": [
+		{
+			"field": "params.social_api_base",
+			"label": "Comments API base URL",
+			"placeholder": "https://api.example.com"
+		},
+		{
+			"field": "params.author_name",
+			"label": "Byline name",
+			"placeholder": "Your name"
+		},
+		{
+			"field": "params.welcome",
+			"label": "Home page headline",
+			"placeholder": "A line about what you write here"
+		},
+		{
+			"field": "params.home_posts",
+			"label": "Posts on the home page",
+			"type": "integer",
+			"placeholder": "3"
+		},
+		{
+			"field": "params.social_image",
+			"label": "Fallback social card image URL",
+			"placeholder": "Used when a post has no image of its own"
+		},
+		{
+			"field": "params.comments_cache",
+			"label": "Reply cache (seconds)",
+			"type": "integer",
+			"placeholder": "60"
+		},
+		{
+			"field": "params.search",
+			"label": "Show search box",
+			"type": "boolean"
+		},
+		{
+			"field": "params.include_conversation",
+			"label": "Also embed Micro.blog's own conversation",
+			"type": "boolean"
+		}
+	]
 }

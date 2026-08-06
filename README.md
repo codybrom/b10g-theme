@@ -41,6 +41,29 @@ that supplies `layouts/index.html` but no `layouts/list.photoshtml.html` /
 `layouts/list.archivehtml.html` will serve the homepage at both URLs. Those two
 templates are included here for that reason — don't drop them.
 
+## Settings
+
+These are declared in `plugin.json`, so Micro.blog renders them as a form — open
+**Design → Edit Custom Themes → b10g** and fill them in there. There is no config
+file to hand-edit.
+
+The one worth setting is **Comments API base URL**. Everything else has a working
+default.
+
+| Setting | Default |
+| --- | --- |
+| Comments API base URL | *(unset — Threads replies stay off)* |
+| Byline name | `Cody Bromley` |
+| Home page headline | b10g.xyz's tagline |
+| Posts on the home page | `3` |
+| Fallback social card image URL | *(post's first image is used)* |
+| Reply cache (seconds) | `60` |
+| Show search box | on |
+| Also embed Micro.blog's own conversation | off |
+
+`menu_links` (extra nav links) is a list and cannot be expressed as a form field —
+set it in the theme's config if you want nav entries beyond Micro.blog's own pages.
+
 ## Parameters
 
 | Param | Default | Purpose |
