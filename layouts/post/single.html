@@ -30,12 +30,14 @@
     </header>
   {{ end }}
 
-  <div class="post-body body e-content">
+  <div class="post-body body e-content{{ if not .Title }} post-body-note{{ end }}">
     {{ .Content }}
   </div>
 
   {{ if .Title }}
     <a class="u-url" href="{{ .Permalink }}" hidden aria-hidden="true"></a>
+  {{ else }}
+    {{ partial "post-hashtags.html" . }}
   {{ end }}
 
   {{ partial "comments.html" . }}

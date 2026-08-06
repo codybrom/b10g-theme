@@ -6,7 +6,15 @@
 // consistent place and leaves posts without the shortcode untouched.
 //
 // Element name kept as <mastodon-comments> so the vendored b10g stylesheet applies.
-import Comments from "./comments.js";
+// The page requests this module with ?theme_seconds appended, but a static import
+// does not inherit that query — the browser asks for ./comments.js bare, and that
+// URL keeps being served from a cache entry laid down before the deploy. The
+// symptom is code that is provably on the origin yet never runs, which reads
+// exactly like a bug in the code itself. Carrying this module's own query across
+// to its sibling keeps the pair in step.
+const { default: Comments } = await import(
+  `./comments.js${new URL(import.meta.url).search}`
+);
 
 customElements.define("mastodon-comments", Comments);
 

@@ -2,11 +2,22 @@
 <ul class="postList h-feed">
   {{ range .Pages.ByDate.Reverse }}
     {{ $p := . }}
-    <li class="post h-entry">
-      <h2 class="post-title">
-        <a class="p-name" href="{{ $p.Permalink }}">{{ $p.Title | htmlUnescape | default ($p.Date.Format "January 2, 2006") }}</a>
-      </h2>
-      {{ partial "post-details.html" $p }}
+    <li class="post h-entry{{ if not $p.Title }} is-note{{ end }}">
+      {{ if $p.Title }}
+        <h2 class="post-title">
+          <a class="p-name" href="{{ $p.Permalink }}">{{ $p.Title | htmlUnescape }}</a>
+        </h2>
+        {{ partial "post-details.html" $p }}
+      {{ else }}
+        {{/* An untitled note has no title to compact down to, and a date dressed up
+             as one said less than the note itself. Same shape it has on the archive
+             and the home page: timestamp heading, the note, then its hashtags. */}}
+        <header class="post-header post-header-compact">
+          {{ partial "post-meta-compact.html" $p }}
+        </header>
+        <div class="post-body body e-content post-body-note">{{ $p.Content }}</div>
+        {{ partial "post-hashtags.html" $p }}
+      {{ end }}
     </li>
   {{ end }}
 </ul>

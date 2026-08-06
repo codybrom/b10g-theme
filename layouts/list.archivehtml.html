@@ -43,6 +43,9 @@
           <a class="p-name" href="{{ $p.Permalink }}">{{ $p.Title | htmlUnescape }}</a>
         </h2>
       {{ else }}
+        <header class="post-header post-header-compact">
+          {{ partial "post-meta-compact.html" $p }}
+        </header>
         {{/* Untitled notes read in full here rather than as a truncated pseudo-title.
              Anything carrying media or an embed gets a text teaser plus a Read more
              instead, so the archive stays a scannable list rather than a gallery. */}}
@@ -64,11 +67,15 @@
           </div>
           <a href="{{ $p.Permalink }}" class="post-link">Read more →</a>
         {{ else }}
-          <div class="post-body body e-content">{{ $c }}</div>
+          <div class="post-body body e-content post-body-note">{{ $c }}</div>
           <a class="u-url" href="{{ $p.Permalink }}" hidden aria-hidden="true"></a>
         {{ end }}
       {{ end }}
-      {{ partial "post-details.html" $p }}
+      {{ if $p.Title }}
+        {{ partial "post-details.html" $p }}
+      {{ else }}
+        {{ partial "post-hashtags.html" $p }}
+      {{ end }}
     </li>
   {{ end }}
 </ul>

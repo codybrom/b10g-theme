@@ -12,7 +12,12 @@
 const images = [...document.querySelectorAll(".post-body img")].filter(
   // Emoji are inline text. An image already inside a link has somewhere else to
   // go, and hijacking that click would be worse than leaving it alone.
-  (img) => !img.classList.contains("custom-emoji") && !img.closest("a"),
+  (img) =>
+    !img.classList.contains("custom-emoji") &&
+    !img.closest("a") &&
+    // An embedded post brings its own chrome. Its avatar is not content, and its
+    // media already links out to the original.
+    !img.closest(".toot"),
 );
 
 if (images.length) {

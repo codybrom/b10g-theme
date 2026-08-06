@@ -14,12 +14,4 @@
   </a>
 
   {{ partial "edit-link.html" . }}
-
-  {{ with .Params.categories }}
-    <div class="post-tags">
-      {{ range . }}
-        <a class="badge" href="{{ (printf "/categories/%s/" (. | urlize)) | relURL }}">{{ . }}</a>
-      {{ end }}
-    </div>
-  {{ end }}
 </div>

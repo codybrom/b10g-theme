@@ -1,0 +1,15 @@
+{{/* Categories for an untitled note, set after the text as hashtags rather than
+     as badges above it. A quickpost is often shorter than its own metadata, so
+     the badges competed with the words; trailing and dimmed, they read as the
+     aside they are. Titled posts keep the badge row in post-details.html.
+
+     Slugified for display as well as for the href — most categories are one word
+     and read as written, but "vision pro" would break the hashtag it is trying to
+     look like. */}}
+{{ with .Params.categories }}
+  <p class="post-hashtags">
+    {{ range . }}
+      <a class="hashtag" href="{{ (printf "/categories/%s/" (. | urlize)) | relURL }}">#{{ . | urlize }}</a>
+    {{ end }}
+  </p>
+{{ end }}

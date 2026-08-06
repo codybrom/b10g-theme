@@ -33,7 +33,8 @@
         <header class="post-header post-header-compact">
           {{ partial "post-meta-compact.html" $p }}
         </header>
-        <div class="post-excerpt body e-content">{{ $p.Content }}</div>
+        <div class="post-excerpt body e-content post-body-note">{{ $p.Content }}</div>
+        {{ partial "post-hashtags.html" $p }}
       {{ end }}
     </article>
   {{ end }}

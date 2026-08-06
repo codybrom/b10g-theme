@@ -152,58 +152,63 @@ export default class SocialComments extends HTMLElement {
       this.getAttribute("mastodon") || this.getAttribute("src"),
     )[0];
 
-    const cards = order
-      .filter((k) => this.postStats[k] || replyUrls[k])
-      .map((k) => {
-        const color = colors[k];
-        const name = names[k];
-        const s = this.postStats[k];
-        const url = replyUrls[k] || s?.url || "#";
-        const statParts = [];
-        if (s?.likes) statParts.push(`${icons.favourite}&nbsp;${s.likes}`);
-        if (s?.reposts) statParts.push(`${icons.reblog}&nbsp;${s.reposts}`);
-        const statsRow = statParts.length
-          ? `<div style="display:flex;gap:8px;opacity:0.6;font-size:0.8em">${statParts.join("")}</div>`
-          : "";
-        const linkStyle = `color:${color};text-decoration:none;font-size:0.8em;font-weight:600`;
-        const hoverAttr = `onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"`;
-        const multiUrls = allReplyUrls[k];
-        const signIns = s?.replyOptions;
-        let replyRow;
-        if (signIns && signIns.length > 1) {
-          // <details> rather than scripted state: the disclosure, the keyboard
-          // behaviour and the toggling are all native, and three named links in a
-          // card this narrow would wrap badly if shown up front.
-          const choices = signIns
-            .map(
-              (o) =>
-                `<a href="${o.url}" target="_blank" rel="noopener" style="${linkStyle};cursor:pointer" ${hoverAttr}>${o.name}</a>`,
-            )
-            .join("");
-          replyRow = `<details class="reply-choice" style="margin-top:auto">
-            <summary style="${linkStyle};cursor:pointer">Reply&nbsp;→</summary>
-            <div class="reply-choice-options">${choices}</div>
-          </details>`;
-        } else if (multiUrls && multiUrls.length > 1) {
-          const hereLinks = multiUrls.map(
-            (u) =>
-              `<a href="${u}" target="_blank" rel="noopener" style="${linkStyle};cursor:pointer" ${hoverAttr}>Here&nbsp;↗</a>`,
-          );
-          const last = hereLinks.pop();
-          const joined =
-            hereLinks.length > 1
-              ? `${hereLinks.join(", ")} or ${last}`
-              : `${hereLinks[0]} or ${last}`;
-          replyRow = `<span style="font-weight:600;margin-top:auto">Reply&nbsp;${joined}</span>`;
-        } else {
-          replyRow = `<a href="${url}" target="_blank" rel="noopener" style="${linkStyle};cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:auto" ${hoverAttr}>Reply&nbsp;→</a>`;
-        }
-        return `<div style="flex:1;min-width:130px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;padding:10px 14px;border-radius:8px;border:1px solid color-mix(in srgb,${color} 25%,transparent)">
+    const present = order.filter((k) => this.postStats[k] || replyUrls[k]);
+
+    // A platform with its own card already offers the better route: that name
+    // points at the actual thread, where a reply is visible to the people in it.
+    // Offering the same name again as a Micro.blog sign-in would be one word on
+    // one screen meaning two different things.
+    const hasOwnCard = new Set(present.filter((k) => k !== "microblog"));
+
+    const cards = present.map((k) => {
+      const color = colors[k];
+      const name = names[k];
+      const s = this.postStats[k];
+      const url = replyUrls[k] || s?.url || "#";
+      const statParts = [];
+      if (s?.likes) statParts.push(`${icons.favourite}&nbsp;${s.likes}`);
+      if (s?.reposts) statParts.push(`${icons.reblog}&nbsp;${s.reposts}`);
+      const statsRow = statParts.length
+        ? `<div style="display:flex;gap:8px;opacity:0.6;font-size:0.8em">${statParts.join("")}</div>`
+        : "";
+      const linkStyle = `color:${color};text-decoration:none;font-size:0.8em;font-weight:600`;
+      const hoverAttr = `onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"`;
+      const multiUrls = allReplyUrls[k];
+      const signIns = s?.replyOptions?.filter((o) => !hasOwnCard.has(o.key));
+      let replyRow;
+      if (signIns && signIns.length > 1) {
+        // "via", not "on": these are identities, and whichever you pick the
+        // reply lands on Micro.blog. Named plainly and shown up front rather
+        // than behind a disclosure, so the routes are visible without a click.
+        // Deliberately not filtered to match where the post was syndicated — a
+        // reader whose only account is Bluesky needs that route even on a post
+        // that never reached Bluesky.
+        const links = signIns.map(
+          (o) =>
+            `<a href="${o.url}" target="_blank" rel="noopener" style="${linkStyle};cursor:pointer" ${hoverAttr}>${o.name}</a>`,
+        );
+        const last = links.pop();
+        replyRow = `<span class="reply-via" style="font-weight:600;margin-top:auto">Reply via ${links.join(", ")} or ${last}</span>`;
+      } else if (multiUrls && multiUrls.length > 1) {
+        const hereLinks = multiUrls.map(
+          (u) =>
+            `<a href="${u}" target="_blank" rel="noopener" style="${linkStyle};cursor:pointer" ${hoverAttr}>Here&nbsp;↗</a>`,
+        );
+        const last = hereLinks.pop();
+        const joined =
+          hereLinks.length > 1
+            ? `${hereLinks.join(", ")} or ${last}`
+            : `${hereLinks[0]} or ${last}`;
+        replyRow = `<span style="font-weight:600;margin-top:auto">Reply&nbsp;${joined}</span>`;
+      } else {
+        replyRow = `<a href="${url}" target="_blank" rel="noopener" style="${linkStyle};cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:auto" ${hoverAttr}>Reply&nbsp;→</a>`;
+      }
+      return `<div style="flex:1;min-width:130px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;padding:10px 14px;border-radius:8px;border:1px solid color-mix(in srgb,${color} 25%,transparent)">
           <span style="display:flex;align-items:center;gap:5px;font-size:0.85em;font-weight:600">${icons[k]} ${name}</span>
           ${statsRow}
           ${replyRow}
         </div>`;
-      });
+    });
 
     // Hide the old "Reply on..." text and insert share section before comments
     const section = this.closest(".comments-section") || this.parentElement;
@@ -239,9 +244,21 @@ export default class SocialComments extends HTMLElement {
       this.postStats.microblog = {
         url: `${commentBase}/mb${target}`,
         replyOptions: [
-          { name: "Micro.blog", url: `${commentBase}/mb${target}` },
-          { name: "Mastodon", url: `${commentBase}/mastodon${target}` },
-          { name: "Bluesky", url: `${commentBase}/bluesky${target}` },
+          {
+            key: "mastodon",
+            name: "Mastodon",
+            url: `${commentBase}/mastodon${target}`,
+          },
+          {
+            key: "bluesky",
+            name: "Bluesky",
+            url: `${commentBase}/bluesky${target}`,
+          },
+          {
+            key: "microblog",
+            name: "Micro.blog",
+            url: `${commentBase}/mb${target}`,
+          },
         ],
         source: "microblog",
       };
