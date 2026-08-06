@@ -21,7 +21,14 @@
 {{ with .Params.comments_threads }}
   {{ range split . "," }}{{ $threadsList = $threadsList | append (trim . " ") }}{{ end }}
 {{ else }}
-  {{ with .Params.threads }}{{ with .url }}{{ $threadsList = $threadsList | append . }}{{ end }}{{ end }}
+  {{ with .Params.threads }}
+    {{ $u := "" }}
+    {{ with .url }}{{ $u = . }}{{ end }}
+    {{ if and (not $u) .username .id }}
+      {{ $u = printf "https://www.threads.com/@%s/post/%v" .username .id }}
+    {{ end }}
+    {{ with $u }}{{ $threadsList = $threadsList | append . }}{{ end }}
+  {{ end }}
 {{ end }}
 
 {{/* --- Mastodon --- */}}
@@ -41,7 +48,17 @@
 {{ with .Params.comments_bluesky }}
   {{ range split . "," }}{{ $blueskyList = $blueskyList | append (trim . " ") }}{{ end }}
 {{ else }}
-  {{ with .Params.bluesky }}{{ with .link }}{{ $blueskyList = $blueskyList | append . }}{{ end }}{{ end }}
+  {{/* Micro.blog's docs list .link (https bsky.app URL) but its own Blank theme reads
+       .url — accept either, and fall back to building one from handle + id. */}}
+  {{ with .Params.bluesky }}
+    {{ $u := "" }}
+    {{ with .link }}{{ $u = . }}{{ end }}
+    {{ if not $u }}{{ with .url }}{{ if hasPrefix . "http" }}{{ $u = . }}{{ end }}{{ end }}{{ end }}
+    {{ if and (not $u) .handle .id }}
+      {{ $u = printf "https://bsky.app/profile/%s/post/%v" .handle .id }}
+    {{ end }}
+    {{ with $u }}{{ $blueskyList = $blueskyList | append . }}{{ end }}
+  {{ end }}
 {{ end }}
 
 {{ if or $threadsList (or $mastodonList $blueskyList) }}
@@ -94,3 +111,8 @@
 
   <script type="module" src="{{ "assets/js/social-comments.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
 {{ end }}
+
+{{/* TEMPORARY diagnostic — remove once replies are confirmed working. Reports which
+     cross-posting params Micro.blog actually exposes on this post, so the reason a
+     widget did or did not render is visible in the page source. */}}
+<meta name="b10g-crosspost" content="threads={{ if .Params.threads }}{{ jsonify .Params.threads }}{{ else }}none{{ end }} | mastodon={{ if .Params.mastodon }}{{ jsonify .Params.mastodon }}{{ else }}none{{ end }} | bluesky={{ if .Params.bluesky }}{{ jsonify .Params.bluesky }}{{ else }}none{{ end }}">
