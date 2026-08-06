@@ -2,19 +2,29 @@
 
 ## Installing / updating
 
-Micro.blog → **Design → Edit Custom Themes → New Theme**, pick the **Blank** design,
-and clone this repository. Micro.blog downloads the files and serves them as your
-custom theme.
+Install this as a **plug-in**, not a custom theme:
+
+Micro.blog → **Design → Edit Custom Themes → New Plug-in**, clone this repository,
+and set the built-in design to **Blank**.
+
+A plug-in supplies template layers exactly as a custom theme does, and additionally
+renders the `fields` in `plugin.json` as a settings form. Those settings are stored
+per blog, outside the template files, so they survive re-cloning — whereas a custom
+theme can only be configured through `config.json`, which is overwritten every time
+you pull an update.
+
+**Install it once.** Adding it as both a theme and a plug-in gives two layers of
+identical templates; they render the same today, but the moment one is re-cloned and
+the other is not, the higher layer silently wins and the site is running a version
+you did not expect.
 
 Clone the whole repo rather than pasting individual files. Hugo parses every template
-before rendering anything, so a partial that references a file which didn't make it
-across fails the entire site build, not just one page — every outage during this
-theme's development came from a partial sync.
+before rendering anything, so a partial referencing a file that didn't make it across
+fails the entire site build, not just one page — every outage during this theme's
+development came from a partial sync.
 
 Re-cloning is also how you take updates: Micro.blog's clone is a one-time download,
-not a live sync, so edits pushed here need re-importing (or editing in the theme
-editor).
-
+not a live sync, so pushes here need re-importing (or editing in the theme editor).
 
 The [b10g.xyz](https://b10g.xyz) design, ported from Lume to Hugo for Micro.blog.
 
@@ -43,12 +53,30 @@ templates are included here for that reason — don't drop them.
 
 ## Settings
 
-These are declared in `plugin.json`, so Micro.blog renders them as a form — open
-**Design → Edit Custom Themes → b10g** and fill them in there. There is no config
-file to hand-edit.
+Installed as a plug-in, these appear as a form under **Plug-ins → b10g**. They are
+declared as `fields` in `plugin.json` and stored per blog, so updating the plug-in
+does not clear them.
 
 The one worth setting is **Comments API base URL**. Everything else has a working
 default.
+
+| Setting | Default |
+| --- | --- |
+| Comments API base URL | *(unset — Threads replies stay off)* |
+| Byline name | `Cody Bromley` |
+| Home page headline | b10g.xyz's tagline |
+| Posts on the home page | `3` |
+| Fallback social card image URL | *(the post's own first image is used)* |
+| Reply cache (seconds) | `60` |
+| Show search box | on |
+| Also embed Micro.blog's own conversation | off |
+
+`config.json` sets theme-level defaults for the same params. Plug-in settings win
+over it, so it is only useful for values you want baked into the repo. Keep
+site-specific hostnames out of it — this repo is public.
+
+`menu_links` (extra nav links) is a list and cannot be expressed as a form field, so
+it has to go in `config.json`.
 
 | Setting | Default |
 | --- | --- |
