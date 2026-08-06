@@ -1,15 +1,21 @@
 {{- /* Declare where a post was syndicated so its replies can be pulled in.
 {{< replies threads="URL" mastodon="URL" bluesky="URL" >}}
 Comma-separate to give more than one URL per platform.
+threads_id takes the Threads media IDs for those URLs, in the same order. It is
+optional but worth setting: without it the API proxy has to find the post by
+paging recent posts, which reaches only a few hundred and so stops resolving a
+URL once enough newer posts exist.
 Renders nothing here: it emits a hidden data element, and social-comments.js
 builds the replies section at the end of the post. Attributes are assembled
 into a string rather than written inline so an HTML formatter cannot reflow
 template actions inside the tag. */ -}}
 {{- $t := trim (or (.Get "threads") "") " " -}}
+{{- $ti := trim (or (.Get "threads_id") "") " " -}}
 {{- $m := trim (or (.Get "mastodon") "") " " -}}
 {{- $b := trim (or (.Get "bluesky") "") " " -}}
 {{- $a := "" -}}
 {{- with $t -}}{{- $a = printf "%s data-threads=%q" $a . -}}{{- end -}}
+{{- with $ti -}}{{- $a = printf "%s data-threads-id=%q" $a . -}}{{- end -}}
 {{- with $m -}}{{- $a = printf "%s data-mastodon=%q" $a . -}}{{- end -}}
 {{- with $b -}}{{- $a = printf "%s data-bluesky=%q" $a . -}}{{- end -}}
 {{- if $a -}}

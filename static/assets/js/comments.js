@@ -43,18 +43,23 @@ export default class SocialComments extends HTMLElement {
     );
     const blueskyUrls = splitAttr(this.getAttribute("bluesky"));
     const threadsRaw = splitAttr(this.getAttribute("threads"));
+    // Media IDs, positionally aligned with the threads URLs. Resolving a shortcode
+    // instead costs the proxy a walk through recent posts, which reaches only a few
+    // hundred and so quietly stops finding older ones as the account keeps posting.
+    const threadsIds = splitAttr(this.getAttribute("threads-id"));
 
     // Parse Threads URLs into shortcode + owner pairs
-    const threadsEntries = threadsRaw.map((t) => {
+    const threadsEntries = threadsRaw.map((t, i) => {
+      const mediaId = threadsIds[i] || null;
       try {
         const m = new URL(t).pathname.match(
           /^\/@([\w.]+)\/post\/([A-Za-z0-9_-]+)/,
         );
         return m
-          ? { shortcode: m[2], owner: m[1] }
-          : { shortcode: t, owner: null };
+          ? { shortcode: m[2], owner: m[1], mediaId }
+          : { shortcode: t, owner: null, mediaId };
       } catch {
-        return { shortcode: t, owner: null };
+        return { shortcode: t, owner: null, mediaId };
       }
     });
     const threadsOwner =
@@ -74,7 +79,7 @@ export default class SocialComments extends HTMLElement {
       ...mastodonUrls.map((u) => this.#fetchMastodon(new URL(u))),
       ...blueskyUrls.map((u) => this.#fetchBluesky(new URL(u))),
       ...threadsEntries.map((e) =>
-        this.#fetchThreads(e.shortcode, threadsOwner),
+        this.#fetchThreads(e.shortcode, threadsOwner, e.mediaId),
       ),
       microblogUrl ? this.#fetchMicroblog(microblogUrl) : null,
     ]);
@@ -255,15 +260,14 @@ export default class SocialComments extends HTMLElement {
     }
   }
 
-  async #fetchThreads(shortcode, owner) {
+  async #fetchThreads(shortcode, owner, mediaId) {
     try {
       const apiBase = this.getAttribute("api-base") || "";
       if (!apiBase) return; // no proxy configured: skip Threads replies
       // Always send the shortcode so the original Pages Functions backend still
-      // works; additionally send Micro.blog's stored media ID, which the Worker
+      // works; additionally send the media ID when one is known, which the Worker
       // backend prefers to skip paginating the Threads API. Sending both keeps the
       // component compatible with either deployment.
-      const mediaId = this.getAttribute("threads-id");
       const params = new URLSearchParams({ shortcode });
       if (mediaId) params.set("media_id", mediaId);
       const res = await fetch(`${apiBase}/api/threads-comments?${params}`);
@@ -339,23 +343,35 @@ export default class SocialComments extends HTMLElement {
   async #fetchBluesky(url) {
     const { pathname } = url;
 
-    const [, handle, rkey] = pathname.match(
-      /\/profile\/([\w\.]+)\/post\/(\w+)/,
-    );
+    // Micro.blog records Bluesky syndication with a DID in place of the handle, and
+    // a DID contains colons. A null match here would throw on the destructure, and
+    // because this runs inside a Promise.all that would take Threads and Mastodon
+    // down with it rather than just skipping Bluesky.
+    const match = pathname.match(/\/profile\/([\w.:]+)\/post\/(\w+)/);
 
-    if (!handle || !rkey) {
+    if (!match) {
       return;
     }
+
+    const [, actor, rkey] = match;
 
     const options = {
       ttl: Number(this.getAttribute("cache") || 0),
     };
 
-    const didData = await fetchJSON(
-      `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
-      options,
-    );
-    const uri = `at://${didData.did}/app.bsky.feed.post/${rkey}`;
+    // A DID is already what resolveHandle returns; passing one back to it is a 400,
+    // not a no-op.
+    let did = actor;
+
+    if (!actor.startsWith("did:")) {
+      const didData = await fetchJSON(
+        `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${actor}`,
+        options,
+      );
+      did = didData.did;
+    }
+
+    const uri = `at://${did}/app.bsky.feed.post/${rkey}`;
 
     const threadData = await fetchJSON(
       `https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=${uri}`,
