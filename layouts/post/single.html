@@ -100,8 +100,13 @@
         <a href="{{ .Permalink }}" rel="prev">
           <span>← Older post</span>
           <strong>{{ partial "post-label.html" (dict "page" . "length" 56) }}</strong>
-          {{/* A note's words name it; the timestamp still says which one. */}}
-          {{ if not .Title }}<span class="pagination-when">{{ .Date.Format "Jan 2" }} · {{ .Date.Format "3:04 PM" }}</span>{{ end }}
+          {{/* Every entry says when it was, so the pair read alike. A note also
+               says what time: two can open with the same words, and unlike the
+               long-form posts imported date-only, notes kept a real one. */}}
+          <span class="pagination-when">
+            {{- .Date.Format "Jan 2, 2006" -}}
+            {{- if not .Title }} · {{ .Date.Format "3:04 PM" }}{{ end -}}
+          </span>
         </a>
       </li>
     {{ end }}
@@ -110,8 +115,13 @@
         <a href="{{ .Permalink }}" rel="next">
           <span>Newer post →</span>
           <strong>{{ partial "post-label.html" (dict "page" . "length" 56) }}</strong>
-          {{/* A note's words name it; the timestamp still says which one. */}}
-          {{ if not .Title }}<span class="pagination-when">{{ .Date.Format "Jan 2" }} · {{ .Date.Format "3:04 PM" }}</span>{{ end }}
+          {{/* Every entry says when it was, so the pair read alike. A note also
+               says what time: two can open with the same words, and unlike the
+               long-form posts imported date-only, notes kept a real one. */}}
+          <span class="pagination-when">
+            {{- .Date.Format "Jan 2, 2006" -}}
+            {{- if not .Title }} · {{ .Date.Format "3:04 PM" }}{{ end -}}
+          </span>
         </a>
       </li>
     {{ end }}

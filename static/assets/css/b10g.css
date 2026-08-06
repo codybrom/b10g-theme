@@ -712,8 +712,11 @@ html {
 
 /* A micropost is often two sentences, so a title-sized gap leaves its heading
    floating away from the text it belongs to. */
-.post-header-compact {
-  margin-bottom: var(--row-gap-xsmall);
+/* A note is a timestamp, a couple of sentences and its tags — three things that
+   belong to each other. Set at the gap a paragraph gets, not the gap between
+   sections, so the whole thing reads as one block. */
+.post-header.post-header-compact {
+  margin-bottom: 0.35em;
 }
 
 /* Sized to the 44px minimum tap target, and inset past the notch and rounded
@@ -760,13 +763,16 @@ html {
    footnote on a post that is often two sentences, not a second block competing
    with it. Undecorated until hovered, so the row reads as one aside rather than
    a line of links. */
+.post-body-note > :last-child {
+  margin-bottom: 0;
+}
 .post-hashtags {
   color: var(--color-dim);
   display: flex;
   flex-wrap: wrap;
   font: var(--font-small);
   gap: 0.15em 0.6em;
-  margin: 0.4em 0 0;
+  margin: 0.5em 0 0;
 }
 .post-hashtags .hashtag {
   color: var(--color-dim);
@@ -794,15 +800,6 @@ html {
 }
 .post-body figcaption a {
   color: inherit;
-}
-
-/* Consecutive notes read as a stream rather than as separate entries, so the
-   full gap between posts pushes them apart more than they deserve. Halved when a
-   note follows a note; a note next to a titled post keeps the full gap, because
-   there the break is real. */
-.postList article.post.is-note + article.post.is-note,
-.postList li.post.is-note + li.post.is-note {
-  margin-top: var(--row-gap-small);
 }
 
 /* Timestamp under a note's prev/next label. Dim and small: the words identify
