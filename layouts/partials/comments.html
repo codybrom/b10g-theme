@@ -111,8 +111,3 @@
 
   <script type="module" src="{{ "assets/js/social-comments.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
 {{ end }}
-
-{{/* TEMPORARY diagnostic — remove once replies are confirmed working. Reports which
-     cross-posting params Micro.blog actually exposes on this post, so the reason a
-     widget did or did not render is visible in the page source. */}}
-<meta name="b10g-crosspost" content="threads={{ if .Params.threads }}{{ jsonify .Params.threads }}{{ else }}none{{ end }} | mastodon={{ if .Params.mastodon }}{{ jsonify .Params.mastodon }}{{ else }}none{{ end }} | bluesky={{ if .Params.bluesky }}{{ jsonify .Params.bluesky }}{{ else }}none{{ end }}">

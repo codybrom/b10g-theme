@@ -14,7 +14,14 @@ export const icons = {
   bluesky: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M439.8 358.7C436.5 358.3 433.1 357.9 429.8 357.4C433.2 357.8 436.5 358.3 439.8 358.7zM320 291.1C293.9 240.4 222.9 145.9 156.9 99.3C93.6 54.6 69.5 62.3 53.6 69.5C35.3 77.8 32 105.9 32 122.4C32 138.9 41.1 258 47 277.9C66.5 343.6 136.1 365.8 200.2 358.6C203.5 358.1 206.8 357.7 210.2 357.2C206.9 357.7 203.6 358.2 200.2 358.6C106.3 372.6 22.9 406.8 132.3 528.5C252.6 653.1 297.1 501.8 320 425.1C342.9 501.8 369.2 647.6 505.6 528.5C608 425.1 533.7 372.5 439.8 358.6C436.5 358.2 433.1 357.8 429.8 357.3C433.2 357.7 436.5 358.2 439.8 358.6C503.9 365.7 573.4 343.5 593 277.9C598.9 258 608 139 608 122.4C608 105.8 604.7 77.7 586.4 69.5C570.6 62.4 546.4 54.6 483.2 99.3C417.1 145.9 346.1 240.4 320 291.1z"/></svg>`,
 
   threads: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M427.5 299.7C429.7 300.6 431.7 301.6 433.8 302.5C463 316.6 484.4 337.7 495.6 363.9C511.3 400.4 512.8 459.7 465.3 507.1C429.1 543.3 385 559.6 322.7 560.1L322.4 560.1C252.2 559.6 198.3 536 162 489.9C129.7 448.9 113.1 391.8 112.5 320.3L112.5 319.8C113 248.3 129.6 191.2 161.9 150.2C198.2 104.1 252.2 80.5 322.4 80L322.7 80C393 80.5 447.6 104 485 149.9C503.4 172.6 517 199.9 525.6 231.6L485.2 242.4C478.1 216.6 467.4 194.6 453 177C423.8 141.2 380 122.8 322.5 122.4C265.5 122.9 222.4 141.2 194.3 176.8C168.1 210.1 154.5 258.3 154 320C154.5 381.7 168.1 429.9 194.3 463.3C222.3 498.9 265.5 517.2 322.5 517.7C373.9 517.3 407.9 505.1 436.2 476.8C468.5 444.6 467.9 405 457.6 380.9C451.5 366.7 440.5 354.9 425.7 346C422 372.9 413.9 394.3 401 410.8C383.9 432.6 359.6 444.4 328.3 446.1C304.7 447.4 282 441.7 264.4 430.1C243.6 416.3 231.4 395.3 230.1 370.8C227.6 322.5 265.8 287.8 325.3 284.4C346.4 283.2 366.2 284.1 384.5 287.2C382.1 272.4 377.2 260.6 369.9 252C359.9 240.3 344.3 234.3 323.7 234.2L323 234.2C306.4 234.2 284 238.8 269.7 260.5L235.3 236.9C254.5 207.8 285.6 191.8 323.1 191.8L323.9 191.8C386.5 192.2 423.8 231.3 427.6 299.5L427.4 299.7L427.5 299.7zM271.5 368.5C272.8 393.6 299.9 405.3 326.1 403.8C351.7 402.4 380.7 392.4 385.6 330.6C372.4 327.7 357.8 326.2 342.2 326.2C337.4 326.2 332.6 326.3 327.8 326.6C284.9 329 270.6 349.8 271.6 368.4L271.5 368.5z"/></svg>`,
+  // Generic speech bubble rather than the Micro.blog wordmark, which isn't ours to ship.
+  microblog: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 640 640"><path d="M96 96h448a64 64 0 0 1 64 64v256a64 64 0 0 1-64 64H304L160 576V480H96a64 64 0 0 1-64-64V160a64 64 0 0 1 64-64z"/></svg>`,
 };
+
+// Display names for sources whose key doesn't simply capitalise.
+export const sourceNames = { microblog: "Micro.blog" };
+
+const sourceName = (k) => sourceNames[k] || k[0].toUpperCase() + k.slice(1);
 
 export default class SocialComments extends HTMLElement {
   comments = {};
@@ -57,6 +64,11 @@ export default class SocialComments extends HTMLElement {
     this.comments.mastodon = [];
     this.comments.bluesky = [];
     this.comments.threads = [];
+    this.comments.microblog = [];
+
+    // Micro.blog knows every post on this blog, so its conversation needs no
+    // per-post configuration — just the permalink.
+    const microblogUrl = this.getAttribute("microblog-url");
 
     await Promise.all([
       ...mastodonUrls.map((u) => this.#fetchMastodon(new URL(u))),
@@ -64,6 +76,7 @@ export default class SocialComments extends HTMLElement {
       ...threadsEntries.map((e) =>
         this.#fetchThreads(e.shortcode, threadsOwner),
       ),
+      microblogUrl ? this.#fetchMicroblog(microblogUrl) : null,
     ]);
 
     this.refresh();
@@ -74,6 +87,7 @@ export default class SocialComments extends HTMLElement {
       ...(this.comments.mastodon || []),
       ...(this.comments.bluesky || []),
       ...(this.comments.threads || []),
+      ...(this.comments.microblog || []),
     ].sort((a, b) => a.createdAt - b.createdAt);
 
     const comments = promoteAuthorReplies(allComments).sort(
@@ -91,7 +105,7 @@ export default class SocialComments extends HTMLElement {
   }
 
   #renderPostStats() {
-    const order = ["threads", "bluesky", "mastodon"];
+    const order = ["threads", "bluesky", "mastodon", "microblog"];
     const stats = order
       .filter((k) => this.postStats[k])
       .map((k) => this.postStats[k]);
@@ -101,11 +115,13 @@ export default class SocialComments extends HTMLElement {
       threads: "currentColor",
       bluesky: "#0085FF",
       mastodon: "#6364FF",
+      microblog: "currentColor",
     };
     const names = {
       threads: "Threads",
       bluesky: "Bluesky",
       mastodon: "Mastodon",
+      microblog: "Micro.blog",
     };
 
     // Build reply intent URLs per platform (multiple for threads, single for others)
@@ -181,6 +197,64 @@ export default class SocialComments extends HTMLElement {
     this.parentElement.insertBefore(shareSection, this);
   }
 
+  // Micro.blog's conversation feed is public and CORS-enabled, but keyed by numeric
+  // post ID rather than URL. conversation.js resolves a permalink to that ID, so read
+  // it from there instead of requiring an ID to be configured on every post.
+  async #fetchMicroblog(postUrl) {
+    try {
+      const res = await fetch(
+        `https://micro.blog/conversation.js?url=${encodeURIComponent(postUrl)}`,
+      );
+      if (!res.ok) return;
+      const match = (await res.text()).match(/post_id\s*=\s*(\d+)/);
+      if (!match) return;
+      const postId = match[1];
+
+      // Signing in is how you reply on Micro.blog, so this is the reply target.
+      this.postStats.microblog = {
+        url: `https://micro.blog/account/comments/${postId}/mb?url=${encodeURIComponent(postUrl)}`,
+        source: "microblog",
+      };
+
+      const data = await fetchJSON(
+        `https://micro.blog/posts/conversation?id=${postId}`,
+        { ttl: Number(this.getAttribute("cache")) || 60 },
+      );
+      if (!data?.items) return;
+
+      const mine = this.getAttribute("microblog-username");
+
+      // The feed includes the post being replied to; drop it. Replies carry no
+      // parent pointers, so this list is flat rather than threaded.
+      for (const item of data.items) {
+        if (String(item.id) === postId) continue;
+        const username = item.author?._microblog?.username || "";
+        this.comments.microblog.push({
+          id: `mb-${item.id}`,
+          likedByAuthor: false,
+          isMine: !!mine && username === mine,
+          source: "microblog",
+          url: item.url,
+          parent: null,
+          createdAt: new Date(item.date_published),
+          content: item.content_html || escapeHtml(item.content_text || ""),
+          author: {
+            name: item.author?.name || `@${username}`,
+            handler: username ? `@${username}` : "",
+            url: item.author?.url || "",
+            avatar: item.author?.avatar || "",
+            alt: item.author?.name || username,
+          },
+          boosts: 0,
+          likes: 0,
+          replies: [],
+        });
+      }
+    } catch {
+      // Silently fail
+    }
+  }
+
   async #fetchThreads(shortcode, owner) {
     try {
       const apiBase = this.getAttribute("api-base") || "";
@@ -210,8 +284,10 @@ export default class SocialComments extends HTMLElement {
         };
       }
 
-      // Build a tree from the flat reply list using replied_to
-      const mediaId = data.mediaId;
+      // Build a tree from the flat reply list using replied_to.
+      // Named rootId, not mediaId: the request-side media ID is already bound
+      // above, and redeclaring it here is a fatal parse error for the module.
+      const rootId = data.mediaId;
       const commentMap = new Map();
 
       for (const r of replies.filter((r) => r.hide_status !== "HIDDEN")) {
@@ -251,7 +327,7 @@ export default class SocialComments extends HTMLElement {
       }
 
       const topLevel = Array.from(commentMap.values()).filter(
-        (c) => !c.parent || c.parent === mediaId || !commentMap.has(c.parent),
+        (c) => !c.parent || c.parent === rootId || !commentMap.has(c.parent),
       );
 
       this.comments.threads.push(...topLevel);
@@ -458,7 +534,7 @@ export default class SocialComments extends HTMLElement {
             ${comment.content}
 
             <p class="comment-counts">
-              <a href="${comment.url}" target="_blank" rel="noopener" class="comment-reply-link" style="opacity:0.5;text-decoration:none;font-size:0.85em;color:inherit" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Reply on ${comment.source[0].toUpperCase() + comment.source.slice(1)}</a>
+              <a href="${comment.url}" target="_blank" rel="noopener" class="comment-reply-link" style="opacity:0.5;text-decoration:none;font-size:0.85em;color:inherit" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Reply on ${sourceName(comment.source)}</a>
               ${comment.boosts ? `<span>${icons.reblog} ${comment.boosts}</span>` : ""}
               ${otherLikes ? `<span>${icons.favourite} ${otherLikes}</span>` : ""}
               ${likedChip}

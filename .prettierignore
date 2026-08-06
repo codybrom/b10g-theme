@@ -1,0 +1,3 @@
+# Prettier's HTML parser reflows Go template actions and breaks the build:
+# it splits {{ ... }} across lines and wraps quoted strings mid-literal.
+layouts/

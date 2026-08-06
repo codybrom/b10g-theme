@@ -22,8 +22,15 @@ Everything has a default, so the theme works unconfigured. The one worth setting
 the comments API base URL, which points at a proxy that fetches Threads replies —
 Bluesky and Mastodon are read straight from their public APIs.
 
-Reply URLs come from Micro.blog's cross-posting front matter, so posts imported from
-elsewhere show no replies.
+## Replies
+
+Micro.blog replies appear on every post automatically. For replies on Threads,
+Mastodon or Bluesky, add the URLs to the post:
+
+    {{< replies threads="https://…" mastodon="https://…" bluesky="https://…" >}}
+
+Any combination works, comma-separate for more than one per platform. It renders
+nothing where you put it — the replies section is built at the end of the post.
 
 ## License
 

@@ -1,0 +1,19 @@
+{{- /* Declare where a post was syndicated so its replies can be pulled in.
+{{< replies threads="URL" mastodon="URL" bluesky="URL" >}}
+Comma-separate to give more than one URL per platform.
+Renders nothing here: it emits a hidden data element, and social-comments.js
+builds the replies section at the end of the post. Attributes are assembled
+into a string rather than written inline so an HTML formatter cannot reflow
+template actions inside the tag. */ -}}
+{{- $t := trim (or (.Get "threads") "") " " -}}
+{{- $m := trim (or (.Get "mastodon") "") " " -}}
+{{- $b := trim (or (.Get "bluesky") "") " " -}}
+{{- $a := "" -}}
+{{- with $t -}}{{- $a = printf "%s data-threads=%q" $a . -}}{{- end -}}
+{{- with $m -}}{{- $a = printf "%s data-mastodon=%q" $a . -}}{{- end -}}
+{{- with $b -}}{{- $a = printf "%s data-bluesky=%q" $a . -}}{{- end -}}
+{{- if $a -}}
+{{- printf `<div class="replies-data" hidden aria-hidden="true"%s></div>` $a | safeHTML -}}
+{{- else -}}
+{{- warnf "replies shortcode: no threads, mastodon or bluesky URL given" -}}
+{{- end -}}

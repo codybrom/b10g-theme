@@ -30,6 +30,17 @@
 
   {{ partial "comments.html" . }}
 
+  {{/* Two sources feed the replies section. The shortcode declares where a post was
+       syndicated off-site; Micro.blog already knows every post here, so its own
+       conversation needs nothing but the permalink and applies to all posts. */}}
+  {{ $declared := strings.Contains .Content "replies-data" }}
+  {{ $microblog := .Site.Params.microblog_replies | default true }}
+  {{ if or $declared $microblog }}
+    <div class="replies-mount" hidden aria-hidden="true"
+      {{- if $microblog }} data-post-url="{{ .Permalink }}"{{ end }}></div>
+    <script type="module" src="{{ "assets/js/social-comments.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
+  {{ end }}
+
   {{ if .Site.Params.include_conversation }}
     <script type="text/javascript" src="https://micro.blog/conversation.js?url={{ .Permalink }}"></script>
   {{ end }}

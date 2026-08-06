@@ -41,8 +41,13 @@
       "type": "boolean"
     },
     {
+      "field": "params.microblog_replies",
+      "label": "Show Micro.blog replies",
+      "type": "boolean"
+    },
+    {
       "field": "params.include_conversation",
-      "label": "Also embed Micro.blog's own conversation",
+      "label": "Embed Micro.blog's reply box",
       "type": "boolean"
     }
   ]

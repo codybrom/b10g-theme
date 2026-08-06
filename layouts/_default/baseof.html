@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ .Site.Language.Lang | default "en" }}">
+<html lang="{{ .Site.Language.Lang | default "en" }}"{{ with .Site.Params.social_api_base }} data-social-api-base="{{ . }}"{{ end }} data-social-cache="{{ .Site.Params.comments_cache | default 60 }}">
 {{ partial "head.html" . }}
 <body>
   {{ partial "navbar.html" . }}
