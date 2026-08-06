@@ -1,113 +1,82 @@
 {{/*
-  Social replies (Threads + Mastodon + Bluesky), ported from b10g.xyz.
+  Syndication URLs Micro.blog records itself, emitted as the same hidden data
+  element the {{< replies >}} shortcode produces. social-comments.js builds one
+  replies section from whichever it finds, so a post gets a single section
+  whether its URLs were declared by hand or picked up automatically.
 
-  URLs come from Micro.blog's own cross-posting front matter — it records where each
-  post was syndicated, so nothing needs maintaining here and future posts work
-  automatically:
+  This used to render its own <aside> and <mastodon-comments>. That was harmless
+  only while the params were always empty — the moment Micro.blog cross-posted a
+  post and populated them, the page grew a second Replies section beside the one
+  the shortcode built.
+
+  A shortcode in the post wins: it is the author saying where this went, and it
+  is the only place posts imported from elsewhere can carry that at all. These
+  params exist solely for posts Micro.blog syndicated on its own.
+
       .Params.threads.url   .Params.threads.id (media ID)
       .Params.mastodon.hostname / .username / .id
       .Params.bluesky.link
-
-  Per-post overrides (comments_threads / comments_mastodon / comments_bluesky,
-  comma-separated) still win if set, for posts Micro.blog did not cross-post itself.
-
-  Bluesky and Mastodon replies come straight from their public APIs. Threads needs a
-  server-side proxy (it requires an API token), as does the "liked by author" chip on
-  Mastodon replies; point `social_api_base` at that Worker.
 */}}
 
-{{/* --- Threads --- */}}
-{{ $threadsList := slice }}
-{{ with .Params.comments_threads }}
-  {{ range split . "," }}{{ $threadsList = $threadsList | append (trim . " ") }}{{ end }}
-{{ else }}
-  {{ with .Params.threads }}
-    {{ $u := "" }}
-    {{ with .url }}{{ $u = . }}{{ end }}
-    {{ if and (not $u) .username .id }}
-      {{ $u = printf "https://www.threads.com/@%s/post/%v" .username .id }}
-    {{ end }}
-    {{ with $u }}{{ $threadsList = $threadsList | append . }}{{ end }}
-  {{ end }}
-{{ end }}
+{{ if not (strings.Contains .Content "replies-data") }}
 
-{{/* --- Mastodon --- */}}
-{{ $mastodonList := slice }}
-{{ with .Params.comments_mastodon }}
-  {{ range split . "," }}{{ $mastodonList = $mastodonList | append (trim . " ") }}{{ end }}
-{{ else }}
-  {{ with .Params.mastodon }}
-    {{ if and .hostname .username .id }}
-      {{ $mastodonList = $mastodonList | append (printf "https://%s/@%s/%v" .hostname .username .id) }}
-    {{ end }}
-  {{ end }}
-{{ end }}
-
-{{/* --- Bluesky --- */}}
-{{ $blueskyList := slice }}
-{{ with .Params.comments_bluesky }}
-  {{ range split . "," }}{{ $blueskyList = $blueskyList | append (trim . " ") }}{{ end }}
-{{ else }}
-  {{/* Micro.blog's docs list .link (https bsky.app URL) but its own Blank theme reads
-       .url — accept either, and fall back to building one from handle + id. */}}
-  {{ with .Params.bluesky }}
-    {{ $u := "" }}
-    {{ with .link }}{{ $u = . }}{{ end }}
-    {{ if not $u }}{{ with .url }}{{ if hasPrefix . "http" }}{{ $u = . }}{{ end }}{{ end }}{{ end }}
-    {{ if and (not $u) .handle .id }}
-      {{ $u = printf "https://bsky.app/profile/%s/post/%v" .handle .id }}
-    {{ end }}
-    {{ with $u }}{{ $blueskyList = $blueskyList | append . }}{{ end }}
-  {{ end }}
-{{ end }}
-
-{{ if or $threadsList (or $mastodonList $blueskyList) }}
-  {{/* Threads reply-intent links, built from each post's shortcode. */}}
-  {{ $threadsIntents := slice }}
-  {{ range $threadsList }}
-    {{ $u := trim . " " }}
-    {{ $m := findRE `/post/[A-Za-z0-9_-]+` $u 1 }}
-    {{ if $m }}
-      {{ $sc := strings.TrimPrefix "/post/" (index $m 0) }}
-      {{ $threadsIntents = $threadsIntents | append (printf "https://www.threads.com/intent/post?reply_post_shortcode=%s" $sc) }}
-    {{ else }}
-      {{ $threadsIntents = $threadsIntents | append $u }}
+  {{/* --- Threads --- */}}
+  {{ $threadsList := slice }}
+  {{ with .Params.comments_threads }}
+    {{ range split . "," }}{{ $threadsList = $threadsList | append (trim . " ") }}{{ end }}
+  {{ else }}
+    {{ with .Params.threads }}
+      {{ $u := "" }}
+      {{ with .url }}{{ $u = . }}{{ end }}
+      {{ if and (not $u) .username .id }}
+        {{ $u = printf "https://www.threads.com/@%s/post/%v" .username .id }}
+      {{ end }}
+      {{ with $u }}{{ $threadsList = $threadsList | append . }}{{ end }}
     {{ end }}
   {{ end }}
 
-  {{/* Fallback line for no-JS; comments.js hides it once the platform cards render. */}}
-  {{ $frags := slice }}
-  {{ with $threadsIntents }}{{ $frags = $frags | append (partial "reply-fragment.html" (dict "name" "Threads" "urls" .)) }}{{ end }}
-  {{ with $mastodonList }}{{ $frags = $frags | append (partial "reply-fragment.html" (dict "name" "Mastodon" "urls" .)) }}{{ end }}
-  {{ with $blueskyList }}{{ $frags = $frags | append (partial "reply-fragment.html" (dict "name" "Bluesky" "urls" .)) }}{{ end }}
-  {{ $sentence := "" }}
-  {{ range $i, $f := $frags }}
-    {{ if eq $i 0 }}{{ $sentence = $f }}
-    {{ else if eq $i (sub (len $frags) 1) }}{{ $sentence = printf "%s or %s" $sentence $f }}
-    {{ else }}{{ $sentence = printf "%s, %s" $sentence $f }}{{ end }}
+  {{/* --- Mastodon --- */}}
+  {{ $mastodonList := slice }}
+  {{ with .Params.comments_mastodon }}
+    {{ range split . "," }}{{ $mastodonList = $mastodonList | append (trim . " ") }}{{ end }}
+  {{ else }}
+    {{ with .Params.mastodon }}
+      {{ if and .hostname .username .id }}
+        {{ $mastodonList = $mastodonList | append (printf "https://%s/@%s/%v" .hostname .username .id) }}
+      {{ end }}
+    {{ end }}
   {{ end }}
 
-  <aside class="comments-section">
-    <header class="comments-header">
-      <h2>Replies</h2>
-      <p>Reply on {{ $sentence | safeHTML }} to join the conversation.</p>
-    </header>
+  {{/* --- Bluesky --- */}}
+  {{ $blueskyList := slice }}
+  {{ with .Params.comments_bluesky }}
+    {{ range split . "," }}{{ $blueskyList = $blueskyList | append (trim . " ") }}{{ end }}
+  {{ else }}
+    {{/* Micro.blog's docs list .link, its own Blank theme reads .url — accept
+         either, and fall back to building one from handle + id. */}}
+    {{ with .Params.bluesky }}
+      {{ $u := "" }}
+      {{ with .link }}{{ $u = . }}{{ end }}
+      {{ if not $u }}{{ with .url }}{{ if hasPrefix . "http" }}{{ $u = . }}{{ end }}{{ end }}{{ end }}
+      {{ if and (not $u) .handle .id }}
+        {{ $u = printf "https://bsky.app/profile/%s/post/%v" .handle .id }}
+      {{ end }}
+      {{ with $u }}{{ $blueskyList = $blueskyList | append . }}{{ end }}
+    {{ end }}
+  {{ end }}
 
-    <mastodon-comments
-      class="comments"
-      {{ with $threadsList }}threads="{{ delimit . "," }}"{{ end }}
-      {{/* Micro.blog already knows the Threads media ID, so comments.js can skip
-           paginating the Threads API to resolve it from the shortcode. */}}
-      {{ with .Params.threads }}{{ with .id }}threads-id="{{ . }}"{{ end }}{{ end }}
-      {{ with $mastodonList }}mastodon="{{ delimit . "," }}"{{ end }}
-      {{ with $blueskyList }}bluesky="{{ delimit . "," }}"{{ end }}
-      {{/* No default: b10g.xyz now serves this blog, not the old Pages functions.
-           Set social_api_base to the deployed Worker to enable Threads replies. */}}
-      {{ with .Site.Params.social_api_base }}api-base="{{ . }}"{{ end }}
-      cache="{{ .Site.Params.comments_cache | default 60 }}">
-      No comments yet
-    </mastodon-comments>
-  </aside>
+  {{/* Attributes are assembled into a string rather than written inline so an
+       HTML formatter cannot reflow template actions inside the tag. */}}
+  {{ $a := "" }}
+  {{ with $threadsList }}{{ $a = printf "%s data-threads=%q" $a (delimit . ",") }}{{ end }}
+  {{/* Micro.blog already knows the Threads media ID, which saves the proxy
+       resolving a shortcode by paging back through recent posts. */}}
+  {{ with .Params.threads }}{{ with .id }}{{ $a = printf "%s data-threads-id=%q" $a (printf "%v" .) }}{{ end }}{{ end }}
+  {{ with $mastodonList }}{{ $a = printf "%s data-mastodon=%q" $a (delimit . ",") }}{{ end }}
+  {{ with $blueskyList }}{{ $a = printf "%s data-bluesky=%q" $a (delimit . ",") }}{{ end }}
 
-  <script type="module" src="{{ "assets/js/social-comments.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
+  {{ if $a }}
+    {{ printf `<div class="replies-data" hidden aria-hidden="true"%s></div>` $a | safeHTML }}
+  {{ end }}
+
 {{ end }}
