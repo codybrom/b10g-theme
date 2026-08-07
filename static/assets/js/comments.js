@@ -4,7 +4,7 @@
 // © https://phosphoricons.com/
 export const icons = {
   reblog: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M150.6 105.4C138.1 92.9 117.8 92.9 105.3 105.4L41.3 169.4C32.1 178.6 29.4 192.3 34.4 204.3C39.4 216.3 51.1 224 64 224L96 224L96 448C96 501 139 544 192 544L320 544C337.7 544 352 529.7 352 512C352 494.3 337.7 480 320 480L192 480C174.3 480 160 465.7 160 448L160 224L192 224C204.9 224 216.6 216.2 221.6 204.2C226.6 192.2 223.8 178.5 214.7 169.3L150.7 105.3zM489.4 534.6C501.9 547.1 522.2 547.1 534.7 534.6L598.7 470.6C607.9 461.4 610.6 447.7 605.6 435.7C600.6 423.7 588.9 416 576 416L544 416L544 192C544 139 501 96 448 96L320 96C302.3 96 288 110.3 288 128C288 145.7 302.3 160 320 160L448 160C465.7 160 480 174.3 480 192L480 416L448 416C435.1 416 423.4 423.8 418.4 435.8C413.4 447.8 416.2 461.5 425.3 470.7L489.3 534.7z"/></svg>`,
-  favourite: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M305 151.1L320 171.8L335 151.1C360 116.5 400.2 96 442.9 96C516.4 96 576 155.6 576 229.1L576 231.7C576 343.9 436.1 474.2 363.1 529.9C350.7 539.3 335.5 544 320 544C304.5 544 289.2 539.4 276.9 529.9C203.9 474.2 64 343.9 64 231.7L64 229.1C64 155.6 123.6 96 197.1 96C239.8 96 280 116.5 305 151.1z"/></svg>`,
+  favorite: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M305 151.1L320 171.8L335 151.1C360 116.5 400.2 96 442.9 96C516.4 96 576 155.6 576 229.1L576 231.7C576 343.9 436.1 474.2 363.1 529.9C350.7 539.3 335.5 544 320 544C304.5 544 289.2 539.4 276.9 529.9C203.9 474.2 64 343.9 64 231.7L64 229.1C64 155.6 123.6 96 197.1 96C239.8 96 280 116.5 305 151.1z"/></svg>`,
   author: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 576 576" fill="currentColor" class="comment-author" style="z-index:1;overflow:visible;background:none;border-radius:0"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M416.9 85.2L372 130.1L509.9 268L554.8 223.1C568.4 209.6 576 191.2 576 172C576 152.8 568.4 134.4 554.8 120.9L519.1 85.2C505.6 71.6 487.2 64 468 64C448.8 64 430.4 71.6 416.9 85.2zM338.1 164L122.9 379.1C112.2 389.8 104.4 403.2 100.3 417.8L64.9 545.6C62.6 553.9 64.9 562.9 71.1 569C77.3 575.1 86.2 577.5 94.5 575.2L222.3 539.7C236.9 535.6 250.2 527.9 261 517.1L476 301.9L338.1 164z"/></svg>`,
   verified: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#0095F6" viewBox="0 0 640 640" style="display:inline-block;vertical-align:middle;margin-left:2px"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM438 209.7C427.3 201.9 412.3 204.3 404.5 215L285.1 379.2L233 327.1C223.6 317.7 208.4 317.7 199.1 327.1C189.8 336.5 189.7 351.7 199.1 361L271.1 433C276.1 438 282.9 440.5 289.9 440C296.9 439.5 303.3 435.9 307.4 430.2L443.3 243.2C451.1 232.5 448.7 217.5 438 209.7z"/></svg>`,
   mastodon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M529 243.1C529 145.9 465.3 117.4 465.3 117.4C402.8 88.7 236.7 89 174.8 117.4C174.8 117.4 111.1 145.9 111.1 243.1C111.1 358.8 104.5 502.5 216.7 532.2C257.2 542.9 292 545.2 320 543.6C370.8 540.8 399.3 525.5 399.3 525.5L397.6 488.6C397.6 488.6 361.3 500 320.5 498.7C280.1 497.3 237.5 494.3 230.9 444.7C230.3 440.1 230 435.4 230 430.8C315.6 451.7 388.7 439.9 408.7 437.5C464.8 430.8 513.7 396.2 519.9 364.6C529.7 314.8 528.9 243.1 528.9 243.1zM453.9 368.3L407.3 368.3L407.3 254.1C407.3 204.4 343.3 202.5 343.3 261L343.3 323.5L297 323.5L297 261C297 202.5 233 204.4 233 254.1L233 368.3L186.3 368.3C186.3 246.2 181.1 220.4 204.7 193.3C230.6 164.4 284.5 162.5 308.5 199.4L320.1 218.9L331.7 199.4C355.8 162.3 409.8 164.6 435.5 193.3C459.2 220.6 453.9 246.3 453.9 368.3L453.9 368.3z"/></svg>`,
@@ -166,7 +166,7 @@ export default class SocialComments extends HTMLElement {
       const s = this.postStats[k];
       const url = replyUrls[k] || s?.url || "#";
       const statParts = [];
-      if (s?.likes) statParts.push(`${icons.favourite}&nbsp;${s.likes}`);
+      if (s?.likes) statParts.push(`${icons.favorite}&nbsp;${s.likes}`);
       if (s?.reposts) statParts.push(`${icons.reblog}&nbsp;${s.reposts}`);
       const statsRow = statParts.length
         ? `<div style="display:flex;gap:8px;opacity:0.6;font-size:0.8em">${statParts.join("")}</div>`
@@ -567,7 +567,7 @@ export default class SocialComments extends HTMLElement {
         ? comment.likes - 1
         : comment.likes;
     const likedChip = comment.likedByAuthor
-      ? `<span class="comment-liked-by-author" style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px 2px 4px;border-radius:999px;border:1px solid color-mix(in srgb,currentColor 30%,transparent)">${icons.favourite}${authorAvatar ? `<img src="${authorAvatar}" alt="liked by author" width="16" height="16" style="border-radius:50%;object-fit:cover">` : ""}</span>`
+      ? `<span class="comment-liked-by-author" style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px 2px 4px;border-radius:999px;border:1px solid color-mix(in srgb,currentColor 30%,transparent)">${icons.favorite}${authorAvatar ? `<img src="${authorAvatar}" alt="liked by author" width="16" height="16" style="border-radius:50%;object-fit:cover">` : ""}</span>`
       : "";
 
     return `
@@ -594,7 +594,7 @@ export default class SocialComments extends HTMLElement {
             <p class="comment-counts">
               <a href="${comment.url}" target="_blank" rel="noopener" class="comment-reply-link" style="opacity:0.5;text-decoration:none;font-size:0.85em;color:inherit" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Reply on ${sourceName(comment.source)}</a>
               ${comment.boosts ? `<span>${icons.reblog} ${comment.boosts}</span>` : ""}
-              ${otherLikes ? `<span>${icons.favourite} ${otherLikes}</span>` : ""}
+              ${otherLikes ? `<span>${icons.favorite} ${otherLikes}</span>` : ""}
               ${likedChip}
             </p>
           </div>

@@ -1,0 +1,34 @@
+{{/* Images from a quickpost, reduced to a row of thumbnails.
+
+     A photo note rendered full-size takes over the whole stream and pushes
+     everything else below the fold; dropping the images instead would make a
+     photo-only note invisible. A filmstrip keeps it present and scannable, and
+     the thumbs still open the lightbox — lightbox.js matches .filmstrip img.
+
+     Attributes are read with findRE + TrimPrefix rather than a capture-group
+     replaceRE: the capture-group form silently returned its input unchanged
+     here, rendering a filmstrip that contained no images at all. This form
+     cannot half-work — either the attribute is found or it is not.
+
+     Also avoids findRESubmatch, which needs Hugo 0.111+; a comment in
+     layouts/list.archivehtml.html claims Micro.blog runs 0.91.
+
+     Takes a page. Renders nothing when the post has no images. */}}
+{{ $tags := findRE `<img[^>]*>` .Content }}
+{{ with $tags }}
+  <div class="filmstrip">
+    {{ range $tag := . }}
+      {{ $src := "" }}
+      {{ with findRE `src="[^"]*"` $tag 1 }}
+        {{ $src = index . 0 | strings.TrimPrefix `src="` | strings.TrimSuffix `"` }}
+      {{ end }}
+      {{ $alt := "" }}
+      {{ with findRE `alt="[^"]*"` $tag 1 }}
+        {{ $alt = index . 0 | strings.TrimPrefix `alt="` | strings.TrimSuffix `"` }}
+      {{ end }}
+      {{ with $src }}
+        <img src="{{ . }}" alt="{{ $alt }}" loading="lazy" decoding="async">
+      {{ end }}
+    {{ end }}
+  </div>
+{{ end }}

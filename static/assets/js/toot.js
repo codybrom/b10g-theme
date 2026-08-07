@@ -33,7 +33,9 @@ function withEmojis(html, emojis) {
 }
 
 function media(atts) {
-  const images = (atts || []).filter((a) => a.type === "image" || a.type === "gifv");
+  const images = (atts || []).filter(
+    (a) => a.type === "image" || a.type === "gifv",
+  );
   if (!images.length) return "";
   return `<div class="toot-media${images.length > 1 ? " is-grid" : ""}">${images
     .map(
@@ -65,7 +67,7 @@ async function render(el) {
   const counts = [
     d.replies_count ? `${d.replies_count} replies` : "",
     d.reblogs_count ? `${d.reblogs_count} boosts` : "",
-    d.favourites_count ? `${d.favourites_count} favourites` : "",
+    d.favourites_count ? `${d.favourites_count} favorites` : "",
   ].filter(Boolean);
 
   el.innerHTML = `

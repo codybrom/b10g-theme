@@ -1,0 +1,67 @@
+{{/* One entry in a listing — home, archive, tag pages. Two shapes, matching how
+     the permalinks read:
+
+       quickposts — in full, with any images reduced to a filmstrip of thumbs
+       articles   — truncated, then reading time and tags
+
+     Shared so the three listings can't drift. They had: the archive showing
+     titled posts with no excerpt at all, a block-level "Read more →" on media
+     notes, and the home page doing something else again.
+
+     Takes a page. The caller supplies the wrapping <article> or <li>. */}}
+
+{{ partial "post-time.html" . }}
+
+{{ if .Title }}
+  <h2 class="post-title">
+    {{/* htmlUnescape or entities render doubly escaped ("I&amp;rsquo;m"). */}}
+    <a class="p-name" href="{{ .Permalink }}">{{ .Title | htmlUnescape }}</a>
+  </h2>
+
+  {{/* Truncation, in priority order:
+         1. the <!--more--> tag, when set — .Summary respects it, .Truncated reports it
+         2. Hugo's own summary
+         3. never past the first in-post heading, whichever produced the text
+
+       split, not strings.Index — Hugo's strings namespace has no Index. */}}
+  {{ $body := cond .Truncated .Summary .Content }}
+  {{ range slice "<h1" "<h2" "<h3" }}
+    {{ $parts := split $body . }}
+    {{ if gt (len $parts) 1 }}{{ $body = index $parts 0 }}{{ end }}
+  {{ end }}
+
+  {{/* "Continue reading" is spliced inside the excerpt's last paragraph rather
+       than added after it, so it reads as the end of the sentence instead of a
+       separate block. */}}
+  {{ $more := printf `<a class="post-more" href="%s">Continue&nbsp;reading&nbsp;→</a>` .Permalink }}
+  {{ $trimmed := trim $body " \n\r\t" }}
+  {{ if hasSuffix $trimmed "</p>" }}
+    {{ $body = printf "%s %s</p>" (strings.TrimSuffix "</p>" $trimmed) $more }}
+  {{ else }}
+    {{ $body = printf "%s %s" $trimmed $more }}
+  {{ end }}
+
+  <div class="post-excerpt body e-content">{{ $body | safeHTML }}</div>
+
+  {{/* Tags after the preview on a listing: the text is the hook, the tags are
+       the footnote. Reading time leads the row — the last thing worth knowing
+       before deciding to open it. */}}
+  <div class="post-footer">
+    <span class="post-stats">{{ .ReadingTime }} min read</span>
+    {{ partial "post-hashtags.html" . }}
+  </div>
+{{ else }}
+  {{/* A quickpost reads in full; its images come out of the flow and render as
+       a filmstrip below the text.
+
+       (?s) matters: the render-image hook emits a <figure> across several lines,
+       and without it `.` stops at the newline so the figure is never matched —
+       which left empty <figure> shells carrying 15px margins each. */}}
+  {{ $text := replaceRE `(?s)<figure[^>]*>.*?</figure>` "" .Content }}
+  {{ $text = replaceRE `(?s)<img[^>]*>` "" $text }}
+  {{ $text = replaceRE `(?s)<p>\s*</p>` "" $text }}
+  <div class="post-excerpt body e-content post-body-note">{{ $text | safeHTML }}</div>
+  {{ partial "post-filmstrip.html" . }}
+  {{ partial "post-hashtags.html" . }}
+  <a class="u-url" href="{{ .Permalink }}" hidden aria-hidden="true"></a>
+{{ end }}

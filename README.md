@@ -1,44 +1,42 @@
 # b10g
 
-Hugo theme for Micro.blog, ported from [b10g.xyz](https://b10g.xyz). Based on Lume's
-[simple-blog](https://github.com/lumeland/theme-simple-blog) theme and
-[design system](https://github.com/lumeland/ds), both vendored so the typography,
-spacing and light/dark palettes match the original.
+Hugo theme for Micro.blog, ported from [b10g.xyz](https://b10g.xyz).
 
-Handles titled posts and microposts, Pagefind search, a table of contents, Open Graph
-cards, and replies pulled from Threads, Mastodon and Bluesky.
+Titled posts and microposts, Pagefind search, a table of contents, Open Graph cards, and replies from Micro.blog, Threads, Mastodon and Bluesky. Dark only. One stylesheet, one self-hosted webfont, no external requests, no build step.
 
 ## Install
 
-Clone this repo as a new plug-in under Design → Edit Custom Themes, and set the
-built-in design to Blank. Settings then appear under Plug-ins.
+Clone as a new plug-in under Design → Edit Custom Themes, and set the built-in design to Blank. Settings then appear under Plug-ins.
 
-Installing it as a plug-in rather than a custom theme keeps the settings, which
-Micro.blog stores per blog, so re-cloning for an update doesn't clear them.
+Install it as a **plug-in, not a custom theme** — the theme importer drops `layouts/shortcodes/`, which fails the build, and plug-in settings survive re-cloning.
 
 ## Settings
 
-Everything has a default, so the theme works unconfigured. The one worth setting is
-the comments API base URL, which points at a proxy that fetches Threads replies —
-Bluesky and Mastodon are read straight from their public APIs.
+Everything has a default.
+
+| Setting | Notes |
+| --- | --- |
+| Comments API base URL | Proxy that fetches Threads replies. Everything else reads public APIs; without this, only Threads is skipped. |
+| Masthead tagline | Sits beside the wordmark. Keep it short. |
+| Elsewhere links | Your profiles, shown in the rail. One per line as `Title\|URL`. |
+| Posts on the home page | Default 3. |
 
 ## Replies
 
-Micro.blog replies appear on every post automatically. For replies on Threads,
-Mastodon or Bluesky, add the URLs to the post:
+Micro.blog replies and incoming [Webmentions](https://help.micro.blog/t/webmention/103) appear automatically. For Threads, Mastodon or Bluesky, add the URLs to the post:
 
     {{< replies threads="https://…" mastodon="https://…" bluesky="https://…" >}}
 
-Any combination works, comma-separate for more than one per platform. It renders
-nothing where you put it — the replies section is built at the end of the post.
+Any combination, comma-separated for more than one per platform. It renders nothing where you put it — the section is built at the end of the post.
+
+**Exactly one `.replies-data` per post.** A shortcode wins; the Micro.blog params in `comments.html` only apply when the post declares nothing. Both gives you two Replies sections.
 
 ## Editing
 
-Visit any page with `?edit=1` to show an edit link on each post, linking to the
-Micro.blog editor. `?edit=0` turns them off. The setting is per-browser and visitors
-never see it.
+Add `?edit=1` to any page for per-post edit links; `?edit=0` turns them off. Per-browser, and visitors never see it.
+
+`static/assets/css/b10g.css` is the only stylesheet. It opens with modern-normalize v3.0.1 rules marked `/* modern-normalize */`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Vendored components are listed in
-[THIRD-PARTY.md](THIRD-PARTY.md).
+MIT — see [LICENSE](LICENSE). Third-party components in [THIRD-PARTY.md](THIRD-PARTY.md).

@@ -5,5 +5,25 @@
   {{ with .Content }}<div class="body">{{ . }}</div>{{ end }}
 </header>
 
-{{ partial "post-list.html" . }}
+{{/* /categories/ and /tags/ list terms, not posts — sent through post-list they
+     render as dateless pseudo-entries stamped "January 1, 0001".
+
+     .Data.Terms, .Data.Plural and the entry's .Name/.Count all exist in Hugo
+     0.91 (what Micro.blog runs) as well as current; the `taxonomyTerm` kind and
+     the entry's .Page do not. */}}
+{{ if .Data.Terms }}
+  <nav class="page-navigation">
+    <ul class="page-navigation-tags">
+      {{ range .Data.Terms.Alphabetical }}
+        <li>
+          <a class="badge" href="{{ (printf "/%s/%s/" $.Data.Plural (.Name | urlize)) | relURL }}">
+            {{ .Name }} <span class="badge-count">{{ .Count }}</span>
+          </a>
+        </li>
+      {{ end }}
+    </ul>
+  </nav>
+{{ else }}
+  {{ partial "post-list.html" . }}
+{{ end }}
 {{ end }}

@@ -8,6 +8,14 @@
 const toc = document.querySelector(".toc");
 
 if (toc) {
+  // <details> cannot be opened by CSS at a breakpoint, so rail.html ships it open
+  // and it is closed here when the viewport is narrow. Done once on load rather
+  // than bound to the media query, so a reader who opens it keeps it open.
+  const disclosure = toc.closest("details");
+  if (disclosure && !window.matchMedia("(min-width: 60em)").matches) {
+    disclosure.open = false;
+  }
+
   // Heading element -> its link. Insertion order is document order, which the
   // "topmost visible" search below relies on.
   const links = new Map();

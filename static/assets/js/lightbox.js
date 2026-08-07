@@ -9,7 +9,14 @@
 // cursor should only appear once this has actually run, so with JS off the
 // images are merely capped and nothing pretends to be clickable.
 
-const images = [...document.querySelectorAll(".post-body img")].filter(
+const images = [
+  // .post-body is a permalink, .post-excerpt a listing, .filmstrip the row of
+  // thumbs a quickpost shows on the homepage — a thumb is exactly where you
+  // most want the full image on click.
+  ...document.querySelectorAll(
+    ".post-body img, .post-excerpt img, .filmstrip img",
+  ),
+].filter(
   // Emoji are inline text. An image already inside a link has somewhere else to
   // go, and hijacking that click would be worse than leaving it alone.
   (img) =>

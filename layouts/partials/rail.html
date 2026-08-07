@@ -1,0 +1,76 @@
+{{/* The contextual rail. Elsewhere is the constant; a table of contents stacks
+     above it on posts that have headings.
+
+     Both live inside .aside-col, which is one grid item on wide screens so the
+     two stack in normal flow and the rail hugs the contents list. Below the
+     breakpoint .aside-col becomes `display: contents`, promoting both to grid
+     items of .layout so the contents list can stay above the content (where
+     navigation is useful) while Elsewhere drops below it (where furniture
+     belongs).
+
+     Making them plain siblings does not work: two grid items in one cell overlap
+     rather than stack, and giving them separate rows lets the row-spanning
+     .stream drive the row heights, which strands the rail far down the page.
+
+     Replies do NOT live here. They render below the post. */}}
+<div class="aside-col">
+{{ if .IsPage }}
+  {{ $toc := .TableOfContents }}
+  {{ if strings.Contains $toc "<li>" }}
+    {{/* Ships open, with the summary hidden above 60em; toc.js closes it on load
+         when the viewport is narrow. <details> cannot be opened by CSS, so this
+         is the way round that degrades sanely with no JS — open, not stuck shut. */}}
+    <details class="toc-sidebar" open>
+      <summary>Contents</summary>
+      <nav class="toc">
+        <h2>Contents</h2>
+        {{ $toc }}
+      </nav>
+    </details>
+  {{ end }}
+{{ end }}
+
+<aside class="rail">
+  {{/* Micro.blog's plug-in settings are flat strings, so accept either a
+       newline-separated "Title|URL" string from the hosted form or a proper
+       array of tables from a local hugo.toml. */}}
+  {{ $links := slice }}
+  {{ with .Site.Params.elsewhere }}
+    {{ if reflect.IsSlice . }}
+      {{ $links = . }}
+    {{ else }}
+      {{ range split . "\n" }}
+        {{ $parts := split (trim . " \r") "|" }}
+        {{ if eq (len $parts) 2 }}
+          {{ $links = $links | append (dict "title" (index $parts 0) "url" (index $parts 1)) }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{ with $links }}
+    <section>
+      <h2>Elsewhere</h2>
+      <ul>
+        {{ range . }}<li><a href="{{ .url }}" rel="me">{{ .title }}</a></li>{{ end }}
+      </ul>
+    </section>
+  {{ end }}
+
+  <section>
+    <h2>Feeds</h2>
+    <ul>
+      <li><a href="{{ "/feed.xml" | relURL }}">RSS</a> &middot; <a href="{{ "/feed.json" | relURL }}">JSON</a></li>
+    </ul>
+  </section>
+
+  {{/* Only /archive puts search in its own header; everything else keeps it
+       here. baseof clears the flag before each render. */}}
+  {{ if and (ne .Site.Params.search false) (not (.Scratch.Get "searchInHeader")) }}
+    <section class="rail-search">
+      <h2>Search</h2>
+      {{ partial "search.html" . }}
+    </section>
+  {{ end }}
+</aside>
+</div>

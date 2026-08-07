@@ -9,34 +9,32 @@
     {{- else }}{{ with partial "post-label.html" (dict "page" . "length" 60) }}{{ . }} - {{ end }}{{ .Site.Title }}{{ end -}}
   </title>
 
-  <meta name="supported-color-schemes" content="light dark">
-  <meta name="theme-color" content="hsl(220, 20%, 100%)" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="hsl(220, 20%, 10%)" media="(prefers-color-scheme: dark)">
+  {{/* One color mode. data-theme is pinned to dark on <html> in baseof.html,
+       so there is no pre-paint script and no flash to avoid. */}}
+  <meta name="supported-color-schemes" content="dark">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#13171e">
   <meta content="{{ .Site.Params.author_name | default "Cody Bromley" }}" name="author">
 
-  {{/* Applied before first paint so the dark theme never flashes. */}}
-  <script>
-    let theme = localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light");
-    document.documentElement.dataset.theme = theme;
-    function changeTheme() {
-      theme = theme === "dark" ? "light" : "dark";
-      localStorage.setItem("theme", theme);
-      document.documentElement.dataset.theme = theme;
-    }
-  </script>
 
-  {{/* Inter, the typeface ds.css already asks for first. It ships no @font-face,
-       so until now the site rendered in Inter only for people who happened to have
-       it installed locally — everyone else silently got -apple-system. Linked
-       rather than @imported so the preload scanner finds it on the first pass, and
-       preconnected so the font request starts with the connection already open.
-       Both axes are requested, so one file covers 400/600/700 and
-       font-optical-sizing can tune the display-size headings. */}}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  {{/* Inter is self-hosted — see the @font-face block at the top of b10g.css.
+
+       It used to come from rsms.me: a render-blocking third-party request, whose
+       roman weighs 352KB because it carries every script. Before that, this file
+       also loaded Inter from Google Fonts, which was never used at all — the
+       rsms @font-face declared InterVariable, which won the stack, and
+       document.fonts reported Google's copy as unloaded.
+
+       Now: Google's per-subset builds of the same OFL font, served from our own
+       origin. 73KB for latin roman; the latin-ext files only download if an
+       accented character actually appears.
+
+       The roman is preloaded because every page needs it and it would otherwise
+       be discovered only after the stylesheet parses. The italic is not — plenty
+       of pages have no italic text, and unicode-range plus font-display: swap
+       handle it when they do. */}}
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{{ "assets/fonts/inter-latin-normal.woff2" | relURL }}">
 
   {{/* Must come BEFORE b10g.css: the theme's `.search .pagefind-ui__*` rules only
        win if they are loaded after Pagefind's own stylesheet. b10g.xyz ordered them
@@ -68,4 +66,17 @@
   {{ with .Site.Params.favicon }}
     <link rel="icon" href="{{ . }}">
   {{ end }}
+
+  {{/* Declared after Micro.blog's injected icon so these win when no favicon
+       param is set. The SVG is preferred and carries its own
+       prefers-color-scheme switch — currentColor cannot resolve in a favicon
+       context, so favicon.svg has an explicit fill where mark-square.svg keeps
+       currentColor for inlining.
+
+       PNG sizes are integer multiples of the 17px grid (34 = 2x, 68 = 4x). The
+       conventional 16 and 32 land between cells and fringe the edges gray. */}}
+  <link rel="icon" type="image/svg+xml" href="{{ "assets/img/favicon.svg" | relURL }}">
+  <link rel="icon" type="image/png" sizes="68x68" href="{{ "assets/img/favicon-68.png" | relURL }}">
+  <link rel="icon" type="image/png" sizes="34x34" href="{{ "assets/img/favicon-34.png" | relURL }}">
+  <link rel="apple-touch-icon" href="{{ "assets/img/apple-touch-icon.png" | relURL }}">
 </head>

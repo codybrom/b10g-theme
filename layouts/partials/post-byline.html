@@ -1,0 +1,9 @@
+{{/* Byline for titled posts. Notes don't get one — on a two-sentence note the
+     byline would be longer than the post, and the masthead already says whose
+     site this is.
+
+     Carries the p-author h-card microformat the old post-details.html did, so
+     feed readers and IndieWeb parsers still find an author on a permalink. */}}
+{{ with .Site.Params.author_name | default "Cody Bromley" }}
+  <span class="post-byline">by <a class="p-author h-card" href="{{ "/about/" | relURL }}">{{ . }}</a></span>
+{{ end }}

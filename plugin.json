@@ -14,9 +14,14 @@
       "placeholder": "Your name"
     },
     {
-      "field": "params.welcome",
-      "label": "Home page headline",
-      "placeholder": "A line about what you write here"
+      "field": "params.tagline",
+      "label": "Masthead tagline",
+      "placeholder": "thoughts on product, tech and design"
+    },
+    {
+      "field": "params.elsewhere",
+      "label": "Elsewhere links (one per line, as Title|URL)",
+      "placeholder": "Mastodon|https://mstdn.social/@you"
     },
     {
       "field": "params.home_posts",
