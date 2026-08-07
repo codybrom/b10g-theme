@@ -20,8 +20,8 @@
     },
     {
       "field": "params.elsewhere",
-      "label": "Elsewhere links (one per line, as Title|URL)",
-      "placeholder": "Mastodon|https://mstdn.social/@you"
+      "label": "Elsewhere links, as Title|URL — separate with commas",
+      "placeholder": "Mastodon|https://mstdn.social/@you, GitHub|https://github.com/you"
     },
     {
       "field": "params.home_posts",

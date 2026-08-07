@@ -31,18 +31,23 @@
 {{ end }}
 
 <aside class="rail">
-  {{/* Micro.blog's plug-in settings are flat strings, so accept either a
-       newline-separated "Title|URL" string from the hosted form or a proper
-       array of tables from a local hugo.toml. */}}
+  {{/* Accepts an array of tables from a local hugo.toml, or the flat string the
+       hosted plug-in form gives us. That form renders a single-line <input> —
+       Micro.blog has no textarea field type — so entries separate on a comma as
+       well as a newline. */}}
   {{ $links := slice }}
   {{ with .Site.Params.elsewhere }}
     {{ if reflect.IsSlice . }}
       {{ $links = . }}
     {{ else }}
-      {{ range split . "\n" }}
-        {{ $parts := split (trim . " \r") "|" }}
+      {{ range split (replace . "," "\n") "\n" }}
+        {{ $parts := split (trim . " \r\t") "|" }}
         {{ if eq (len $parts) 2 }}
-          {{ $links = $links | append (dict "title" (index $parts 0) "url" (index $parts 1)) }}
+          {{ $title := trim (index $parts 0) " " }}
+          {{ $url := trim (index $parts 1) " " }}
+          {{ if and $title $url }}
+            {{ $links = $links | append (dict "title" $title "url" $url) }}
+          {{ end }}
         {{ end }}
       {{ end }}
     {{ end }}

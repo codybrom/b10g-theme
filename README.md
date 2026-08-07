@@ -18,7 +18,7 @@ Everything has a default.
 | --- | --- |
 | Comments API base URL | Proxy that fetches Threads replies. Everything else reads public APIs; without this, only Threads is skipped. |
 | Masthead tagline | Sits beside the wordmark. Keep it short. |
-| Elsewhere links | Your profiles, shown in the rail. One per line as `Title\|URL`. |
+| Elsewhere links | Your profiles, shown in the rail, as `Title\|URL` separated by commas. Micro.blog has no multi-line setting field, so one line is all you get. |
 | Posts on the home page | Default 3. |
 
 ## Replies
