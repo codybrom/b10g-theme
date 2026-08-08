@@ -30,7 +30,7 @@
   {{ end }}
 {{ end }}
 
-<aside class="rail">
+<aside class="rail" id="rail">
   {{/* Accepts an array of tables from a local hugo.toml, or the flat string the
        hosted plug-in form gives us. That form renders a single-line <input> —
        Micro.blog has no textarea field type — so entries separate on a comma as
@@ -53,6 +53,20 @@
     {{ end }}
   {{ end }}
 
+  {{/* The site nav again, shown only inside the off-canvas panel — the masthead
+       copy is what desktop uses. Duplicated in markup rather than moved by JS so
+       it is there before the script runs; plain links, so nothing to keep in sync. */}}
+  <nav class="rail-nav">
+    {{ range .Site.Menus.main }}
+      {{ $url := .URL | relLangURL }}
+      {{ $current := or ($.IsMenuCurrent "main" .) ($.HasMenuCurrent "main" .) (eq $.RelPermalink $url) }}
+      <a href="{{ $url }}"{{ if $current }} aria-current="page"{{ end }}>{{ .Name }}</a>
+    {{ end }}
+    {{ range .Site.Params.menu_links }}
+      <a href="{{ .url }}">{{ .title }}</a>
+    {{ end }}
+  </nav>
+
   {{ with $links }}
     <section>
       <h2>Elsewhere</h2>
@@ -68,14 +82,5 @@
       <li><a href="{{ "/feed.xml" | relURL }}">RSS</a> &middot; <a href="{{ "/feed.json" | relURL }}">JSON</a></li>
     </ul>
   </section>
-
-  {{/* Only /archive puts search in its own header; everything else keeps it
-       here. baseof clears the flag before each render. */}}
-  {{ if and (ne .Site.Params.search false) (not (.Scratch.Get "searchInHeader")) }}
-    <section class="rail-search">
-      <h2>Search</h2>
-      {{ partial "search.html" . }}
-    </section>
-  {{ end }}
 </aside>
 </div>

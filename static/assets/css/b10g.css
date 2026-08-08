@@ -209,17 +209,32 @@ textarea {
   --accent: #78a0ff;
   --rule: solid 1px var(--line);
   --radius: 6px;
+  --radius-sm: 4px;
+  /* Spacing scale. Steps are the values already in use, so the common ones map
+     exactly and only the one-offs move. Layout spacing only — em values stay em,
+     because they are meant to track the font size of the thing they sit on. */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-7: 2rem; /* 32px */
+  --space-8: 2.5rem; /* 40px */
+  --space-9: 3rem; /* 48px */
+  --space-10: 5rem; /* 80px */
+
   /* sheet = stream + gap + rail + 2*sheet-pad. Keep this true. */
   --sheet: 71.25rem; /* 1140px */
   --sheet-pad: 6rem; /* 96px */
   --stream: 44.25rem; /* 708px */
   --gutter: 10rem; /* 160px — the timestamp column */
-  --gutter-gap: 3rem; /* 48px  */
-  --gap: 5rem; /* 80px */
+  --gutter-gap: var(--space-9); /* 48px  */
+  --gap: var(--space-10); /* 80px */
   --rail: 10rem; /* 160px */
   /* Not 81ch: the ch unit is the "0" advance (9.3px), not prose advance. */
   --measure: 39.5rem; /* 632px ≈ 81 characters at 15px */
-  --entry: 3rem;
+  --entry: var(--space-9);
   /* Self-hosted variable Inter. It once sat behind
      @supports (font-variation-settings: normal) naming rsms.me's
      InterVariable — that family no longer exists, and the gate silently
@@ -277,11 +292,11 @@ pre {
 }
 :not(pre) > code {
   background: var(--raised);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--text);
   font-size: 0.95em;
   letter-spacing: inherit;
-  padding: 0 0.2rem;
+  padding: 0 var(--space-1);
 }
 :focus {
   z-index: 1;
@@ -297,7 +312,7 @@ hr {
   border: none;
   border-top: 1px solid;
   color: var(--line);
-  margin: 5rem 0;
+  margin: var(--space-10) 0;
 }
 b,
 h1,
@@ -311,8 +326,8 @@ strong {
   font-weight: 600;
 }
 .badge {
-  border: 1px solid var(--line);
-  border-radius: 4px;
+  border: var(--rule);
+  border-radius: var(--radius-sm);
   color: var(--dim);
   display: inline-block;
   padding: 0.2em 0.6em;
@@ -343,13 +358,13 @@ strong {
 }
 .body h1 {
   text-wrap: balance;
-  border-bottom: 1px solid var(--line);
+  border-bottom: var(--rule);
   font: 600 clamp(2rem, 10vw, 4rem) / 1 var(--font-family-ui);
   letter-spacing: -0.03em;
   padding-bottom: 0.1em;
 }
 .body h2 {
-  border-bottom: 1px solid var(--line);
+  border-bottom: var(--rule);
   font: 600 clamp(1.5rem, 8vw, 2rem) / 1.2 var(--font-family-ui);
   letter-spacing: -0.015em;
   padding-bottom: 0.2em;
@@ -412,10 +427,10 @@ strong {
 }
 .toc {
   font: var(--font-small);
-  margin-bottom: 2.5rem;
+  margin-bottom: var(--space-8);
 }
 .pagination ul {
-  column-gap: 2rem;
+  column-gap: var(--space-7);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   list-style: none;
@@ -488,7 +503,7 @@ code[class*="language-"]::selection {
   column-gap: var(--gap);
   /* start, not baseline: cap height scales with font size. See text-box below. */
   align-items: start;
-  padding: var(--entry) 0 5rem;
+  padding: var(--entry) 0 var(--space-10);
 }
 .layout > .stream {
   grid-column: 1;
@@ -511,15 +526,15 @@ code[class*="language-"]::selection {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  column-gap: 0.75rem;
-  row-gap: 0.5rem;
-  padding: 5rem 0 0.5rem;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  padding: var(--space-10) 0 var(--space-2);
   border-bottom: var(--rule);
 }
 .masthead-home {
   display: flex;
   align-items: baseline;
-  gap: 0.6rem;
+  gap: var(--space-2);
   text-decoration: none;
   color: var(--ink);
 }
@@ -538,11 +553,69 @@ code[class*="language-"]::selection {
   font: var(--font-small-ui-tight);
   color: var(--dim);
 }
+.mast-menu {
+  display: none;
+  margin-left: auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  /* 12px, not the button's full 13px of optical padding: pulls the bar's right
+     edge onto the content edge rather than past it. */
+  margin-right: calc(var(--space-3) * -1);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--dim);
+  cursor: pointer;
+}
+.mast-menu:hover {
+  color: var(--ink);
+}
+/* Three bars from one element: the box is the middle bar, the two pseudo
+   elements are the outer ones. */
+.mast-menu-bars,
+.mast-menu-bars::before,
+.mast-menu-bars::after {
+  display: block;
+  width: 1.125rem;
+  height: 1px;
+  background: currentColor;
+}
+.mast-menu-bars {
+  position: relative;
+}
+.mast-menu-bars::before,
+.mast-menu-bars::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+.mast-menu-bars::before {
+  top: -0.375rem;
+}
+.mast-menu-bars::after {
+  top: 0.375rem;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(0 0 0 / 55%);
+}
+
+/* Only ever shown inside the off-canvas panel; the masthead carries the copy
+   that wide screens use. */
+.rail-nav {
+  display: none;
+}
+
 .mast-nav {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: var(--space-5);
 }
 .mast-nav a {
   font: 0.75rem/1 var(--font-family-mono);
@@ -592,7 +665,7 @@ code[class*="language-"]::selection {
 }
 .post-clock {
   display: block;
-  margin-top: 0.15rem;
+  margin-top: var(--space-1);
 }
 
 .post-time a {
@@ -610,7 +683,7 @@ code[class*="language-"]::selection {
   font: 700 1.5rem/1.3 var(--font-family-ui);
   letter-spacing: -0.02em;
   color: var(--ink);
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--space-2);
 }
 .post-title a {
   color: inherit;
@@ -634,7 +707,7 @@ code[class*="language-"]::selection {
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.15rem 0.6rem;
+  gap: var(--space-1) var(--space-2);
 }
 .post-hashtags .hashtag {
   font: var(--font-small-ui-tight);
@@ -651,7 +724,7 @@ blockquote {
 }
 
 .page-navigation {
-  margin-bottom: 5rem;
+  margin-bottom: var(--space-10);
 }
 .page-navigation ul {
   list-style: none;
@@ -663,7 +736,7 @@ blockquote {
 }
 .page-pagination {
   border-top: var(--rule);
-  margin-top: 5rem;
+  margin-top: var(--space-10);
 }
 .postList {
   list-style: none;
@@ -675,7 +748,7 @@ blockquote {
   margin-top: var(--entry);
 }
 .post-header {
-  margin-bottom: 2.5rem;
+  margin-bottom: var(--space-8);
 }
 .post-details {
   display: flex;
@@ -722,13 +795,14 @@ blockquote {
   color: var(--dim);
   font: var(--font-small);
 
+  /* Bleeds to the sheet edge. Measured off --sheet-pad, not 15vw: the two are
+     equal only at 320px, and above it the block overflowed the viewport. */
   @media (max-width: 450px) {
-    margin-left: calc(-15vw / 2);
-    margin-right: calc(-15vw / 2);
+    margin-inline: calc(var(--sheet-pad) * -1);
+    padding: var(--sheet-pad);
     border-radius: 0;
     border-left: none;
     border-right: none;
-    padding: calc(15vw / 2);
   }
 
   & a {
@@ -770,7 +844,7 @@ blockquote {
     height: var(--avatar-size);
     border-radius: var(--radius);
     float: left;
-    margin-right: 14px;
+    margin-right: var(--space-3);
     box-shadow: 0 0 1px #0009;
   }
   .comment-user {
@@ -859,14 +933,26 @@ blockquote {
   }
 }
 
-.search {
-  margin-top: 1rem;
+/* The input sits in the masthead row and widens on focus; the results panel is
+   taken out of flow so it can span the sheet instead of the input's width. */
+.mast-search {
+  position: relative;
+  flex: 0 0 auto;
+}
+.mast-search .pagefind-ui__form {
+  width: 11rem;
+  transition: width 0.18s ease;
+}
+.mast-search:focus-within .pagefind-ui__form,
+.mast-search
+  .pagefind-ui__form:has(.pagefind-ui__search-input:not(:placeholder-shown)) {
+  width: 18rem;
 }
 
 .photos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
-  gap: 15px;
+  gap: var(--space-4);
 }
 .photos-grid-item {
   display: block;
@@ -877,7 +963,7 @@ blockquote {
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: var(--radius);
-  border: 1px solid var(--line);
+  border: var(--rule);
 }
 
 .footnotes {
@@ -965,7 +1051,7 @@ blockquote.toot {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
 }
 .toot-media img {
-  border: 1px solid var(--line);
+  border: var(--rule);
   border-radius: var(--radius);
   max-width: 100%;
 }
@@ -1001,7 +1087,7 @@ blockquote.toot {
 /* Matches render in browser-default yellow otherwise. */
 #search mark {
   background: color-mix(in srgb, var(--red) 22%, transparent);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   color: var(--ink);
   padding: 0 0.15em;
 }
@@ -1095,11 +1181,17 @@ body {
   border: var(--rule);
   border-radius: var(--radius);
   box-shadow: 0 8px 30px rgb(0 0 0 / 12%);
-  inset-inline: 0;
-  margin-top: 0.5rem;
+  /* #search is a narrow masthead control now, so the drawer takes a width of its
+     own instead of matching it. left must be released rather than left at 0:
+     left + right + width is over-constrained, and CSS drops the right offset. */
+  left: auto;
+  right: 0;
+  width: min(34rem, calc(100vw - 2 * var(--sheet-pad)));
+  margin-top: var(--space-2);
   max-height: min(60vh, 32rem);
   overflow-y: auto;
-  padding: 1rem;
+  overscroll-behavior: contain;
+  padding: var(--space-4);
   position: absolute;
   top: 100%;
   z-index: 20;
@@ -1183,14 +1275,14 @@ body {
 .rail h2,
 .toc-sidebar .toc h2,
 .page-navigation h2 {
-  margin: 0 0 0.6rem;
+  margin: 0 0 var(--space-2);
 }
 .rail h2,
 .toc-sidebar .toc h2 {
   opacity: 0.8;
 }
 .rail section + section {
-  margin-top: 1.75rem;
+  margin-top: var(--space-7);
 }
 .rail ul {
   list-style: none;
@@ -1198,7 +1290,7 @@ body {
   padding: 0;
 }
 .rail li {
-  margin-bottom: 0.28rem;
+  margin-bottom: var(--space-1);
 }
 .rail a {
   color: var(--dim);
@@ -1210,7 +1302,7 @@ body {
 
 .toc-sidebar {
   font: 0.8125rem/1.65 var(--font-family-ui);
-  margin-bottom: 1.75rem;
+  margin-bottom: var(--space-7);
 }
 .toc-sidebar > summary {
   align-items: center;
@@ -1238,9 +1330,9 @@ body {
   padding-left: 1em;
 }
 .toc li {
-  padding-left: 0.7rem;
+  padding-left: var(--space-3);
   border-left: var(--rule);
-  margin: 0.1em 0 0.32rem;
+  margin: 0.1em 0 var(--space-1);
 }
 .toc li:has(> a.active) {
   border-left-color: var(--accent);
@@ -1270,11 +1362,12 @@ body {
 .comments-section,
 mastodon-comments {
   display: block;
-  margin-top: 3rem;
-  padding-top: 1.25rem;
+  margin-top: var(--space-9);
+  padding-top: var(--space-5);
   border-top: var(--rule);
 }
 
+.sr-only,
 .comments-header h2 {
   position: absolute;
   width: 1px;
@@ -1324,12 +1417,12 @@ mastodon-comments {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.15rem 0.7rem;
-  margin-top: 0.5rem;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-2);
 }
 .post-footer .post-hashtags {
   margin: 0;
-  gap: 0.15rem 0.7rem;
+  gap: var(--space-1) var(--space-3);
 }
 .post-excerpt:has(+ .post-footer),
 .post-body:has(+ .post-footer) {
@@ -1342,7 +1435,7 @@ mastodon-comments {
 
 .post-footer .post-stats::after {
   content: "·";
-  margin-left: 0.7rem;
+  margin-left: var(--space-3);
 }
 
 .body-home .post-more {
@@ -1356,23 +1449,23 @@ mastodon-comments {
 }
 
 .filmstrip + .post-hashtags {
-  margin-top: 1.1rem;
+  margin-top: var(--space-4);
 }
 
 .filmstrip {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   margin: 0;
   overflow-x: auto;
   scrollbar-width: thin;
-  padding-bottom: 0.25rem;
+  padding-bottom: var(--space-1);
 }
 .filmstrip img {
   height: 92px;
   width: auto;
   max-width: none;
   flex: none;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   border: var(--rule);
   object-fit: cover;
   display: block;
@@ -1383,7 +1476,7 @@ mastodon-comments {
     display: block;
   }
   & .post-time {
-    margin-bottom: 0.4rem;
+    margin-bottom: var(--space-2);
   }
   & .post-date,
   & .post-clock {
@@ -1403,16 +1496,16 @@ mastodon-comments {
   }
 
   & .post > .post-hashtags {
-    margin-top: 1.1rem;
+    margin-top: var(--space-4);
   }
 
   & .post-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    column-gap: 0.9rem;
-    row-gap: 0.25rem;
-    margin: 0 0 1.6rem;
+    column-gap: var(--space-4);
+    row-gap: var(--space-1);
+    margin: 0 0 var(--space-6);
     font: var(--font-small-ui);
     color: var(--dim);
 
@@ -1433,14 +1526,14 @@ mastodon-comments {
     & .post-byline::after,
     & .post-stats::after {
       content: "·";
-      margin-left: 0.9rem;
+      margin-left: var(--space-4);
     }
   }
 
   & .post-title {
     font: 700 1.75rem/1.25 var(--font-family-ui);
     letter-spacing: -0.02em;
-    margin-bottom: 0.6rem;
+    margin-bottom: var(--space-2);
   }
 
   & .post-body {
@@ -1470,7 +1563,7 @@ mastodon-comments {
 
 @media (max-width: 59.99em) {
   :root {
-    --sheet-pad: 1.5rem;
+    --sheet-pad: var(--space-6);
   }
 
   .sheet {
@@ -1486,29 +1579,91 @@ mastodon-comments {
   .layout > .aside-col {
     display: contents;
   }
-  .layout > .aside-col > .toc-sidebar {
-    grid-column: 1;
-    grid-row: 1;
-
-    margin-bottom: 0;
-  }
+  /* Auto-placed, not assigned to rows: a page with no contents list still had
+     row 1 reserved, and its row-gap with it. */
   .layout > .stream {
-    grid-column: 1;
-    grid-row: 2;
+    grid-row: auto;
     max-width: none;
   }
+  /* The contents list stays in the page — it is about the article being read,
+     not about the site, so it belongs where the reader is. */
+  .layout > .aside-col > .toc-sidebar {
+    order: -1;
+    margin-bottom: 0;
+  }
+
+  .mast-menu:not([hidden]) {
+    display: flex;
+  }
+  .rail-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+    margin-bottom: var(--space-6);
+    border-bottom: var(--rule);
+    font: var(--font-small-ui);
+  }
+
+  /* The rail becomes the panel rather than being copied into one: two elements
+     carrying id="search" would leave Pagefind bound to whichever came first. */
   .layout > .aside-col > .rail {
-    grid-column: 1;
-    grid-row: 3;
-    padding-top: 1.25rem;
-    border-top: var(--rule);
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    width: min(19rem, 80vw);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-10) var(--space-6) var(--space-6);
+    background: var(--bg);
+    border-left: var(--rule);
+    border-top: 0;
+    /* visibility, not transform alone — an off-screen panel is still tabbable.
+       Its delay is asymmetric on purpose: it flips to visible immediately on
+       open, so the panel is focusable in the same frame, and waits out the
+       slide on close so it does not vanish mid-transition. */
+    visibility: hidden;
+    transform: translateX(100%);
+    transition:
+      transform 0.22s ease,
+      visibility 0s linear 0.22s;
+  }
+  .menu-open .layout > .aside-col > .rail {
+    visibility: visible;
+    transform: none;
+    transition:
+      transform 0.22s ease,
+      visibility 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layout > .aside-col > .rail {
+      transition: none;
+    }
+  }
+
+  /* Full width under the masthead rather than beside the nav: there is no room
+     for an 11rem field next to a wordmark and a menu button. */
+  .mast-search {
+    order: 3;
+    width: 100%;
+  }
+  .mast-search .pagefind-ui__form,
+  .mast-search:focus-within .pagefind-ui__form {
+    width: 100%;
+  }
+  #search .pagefind-ui__drawer:not(.pagefind-ui__hidden) {
+    inset-inline: 0;
+    width: auto;
   }
 
   .post {
     display: block;
   }
   .post-time {
-    margin-bottom: 0.4rem;
+    margin-bottom: var(--space-2);
   }
   .post-date,
   .post-clock {
@@ -1524,7 +1679,7 @@ mastodon-comments {
   }
 
   .masthead {
-    padding-top: 2.5rem;
+    padding-top: var(--space-8);
   }
   .mast-nav {
     margin-left: 0;

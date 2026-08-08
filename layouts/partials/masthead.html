@@ -11,6 +11,15 @@
     <span class="tagline">{{ . }}</span>
   {{ end }}
 
+  {{/* Opens the rail as an off-canvas panel below the breakpoint, where the rail
+       is otherwise unreachable. Hidden above it, and hidden entirely without JS —
+       menu.js unhides it, so a reader with no JS keeps the rail in the page
+       rather than a button that does nothing. */}}
+  <button class="mast-menu" type="button" aria-controls="rail" aria-expanded="false" hidden>
+    <span class="mast-menu-bars" aria-hidden="true"></span>
+    <span class="sr-only">Menu</span>
+  </button>
+
   <nav class="mast-nav">
     {{/* Pages promoted to the nav by Micro.blog (About, Archive, …).
 
@@ -33,4 +42,9 @@
       <a href="{{ .url }}">{{ .title }}</a>
     {{ end }}
   </nav>
+
+  {{/* Up here rather than in the rail: the rail is 160px, and Pagefind renders
+       its results inside the same container as its input, so there was nowhere
+       for them to go. The results panel spans the sheet from here. */}}
+  <div class="mast-search">{{ partial "search.html" . }}</div>
 </header>

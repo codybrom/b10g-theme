@@ -14,10 +14,6 @@
 
     <div class="layout">
       <main class="stream {{ block "bodyClass" . }}body-page{{ end }}">
-        {{/* Cleared before every render, not just set by the pages that want it:
-             .Scratch outlives one render and is shared by /archive and /photos,
-             which are the same Page under two output formats. */}}
-        {{ .Scratch.Set "searchInHeader" false }}
         {{ block "main" . }}{{ end }}
       </main>
 
@@ -25,12 +21,16 @@
     </div>
   </div>
 
+  {{/* Sits outside .sheet so it can cover it. Inert until menu.js opens the panel. */}}
+  <div class="menu-backdrop" hidden></div>
+
   {{ partial "footer.html" . }}
 
   {{/* Every page kind can carry content images — permalinks, the homepage
        stream, the archive, and the filmstrip of thumbs on a quickpost — so the
        lightbox is loaded here rather than on the permalink alone. It exits
        immediately when nothing matches. */}}
+  <script type="module" src="{{ "assets/js/menu.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
   <script type="module" src="{{ "assets/js/lightbox.js" | relURL }}?{{ .Site.Params.theme_seconds }}"></script>
 
   {{/* Renders nothing unless the author has opted in on this browser with ?edit=1 */}}

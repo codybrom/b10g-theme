@@ -6,17 +6,6 @@
 <header class="page-header">
   <h1 class="page-title">Archive</h1>
 
-  {{/* The archive is the browsing surface, so search gets a prominent slot here
-       rather than only in the rail — where, below the breakpoint, it sits after
-       every post. Tag and category pages keep the rail-only treatment: you
-       arrive at those already filtered. rail.html suppresses its own Search
-       section on /archive so the page never shows two. */}}
-  {{ partial "search.html" . }}
-  {{/* Read by rail.html, which drops its own Search section so the page never
-       shows two. A flag rather than a URL test: this page is the *home* page
-       under the archivehtml output format, so its .RelPermalink is "/". */}}
-  {{ .Scratch.Set "searchInHeader" true }}
-
 </header>
 
 {{/* .Site.Taxonomies works on both Hugo 0.91 (what Micro.blog runs) and current
