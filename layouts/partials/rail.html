@@ -145,22 +145,7 @@
     </ul>
   </section>
 
-  {{/* Only when the page is really there, so the rail never points at a 404 on a
-       site that has not written one. No label above it: it is one link, and a
-       heading would only say the word twice. Its own title is the text, so
-       renaming the page renames the link. */}}
-  {{ with .Site.GetPage "/colophon" }}
-    <section>
-      <ul>
-        <li><a href="{{ .RelPermalink }}">{{ .Title | default "Colophon" }}</a></li>
-      </ul>
-    </section>
-  {{ end }}
-
-  {{/* Last, and in the rail rather than the post column, because the ring's
-       crawler only ever fetches the home page — whatever carries these links has
-       to be on it. The rail is on every page anyway. Also unheadinged: the
-       middle link names itself, as the colophon one does. */}}
+  {{/* IndieWeb Webring - requires opt-in in plugin settings */}}
   {{ partial "webring.html" . }}
 </aside>
 </div>
