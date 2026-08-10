@@ -23,7 +23,7 @@ const icons = {
 };
 
 class SocialReplies extends HTMLElement {
-  comments = {};
+  comments = { mastodon: [], bluesky: [], threads: [], microblog: [] };
   authorAvatar = null;
   postStats = {};
   /** Services whose post could not be found — deleted, blocked, or never there. */
@@ -48,26 +48,15 @@ class SocialReplies extends HTMLElement {
     // hundred and so quietly stops finding older ones as the account keeps posting.
     const threadsIds = splitAttr(this.getAttribute("threads-id"));
 
-    const threadsEntries = threadsRaw.map((t, i) => {
-      const mediaId = threadsIds[i] || null;
-      try {
-        const m = new URL(t).pathname.match(
-          /^\/@([\w.]+)\/post\/([A-Za-z0-9_-]+)/,
-        );
-        return m
-          ? { shortcode: m[2], owner: m[1], mediaId }
-          : { shortcode: t, owner: null, mediaId };
-      } catch {
-        return { shortcode: t, owner: null, mediaId };
-      }
-    });
+    const threadsEntries = threadsRaw.map((t, i) =>
+      parseThreadsRef(t, threadsIds[i] || null),
+    );
     const threadsOwner =
       this.getAttribute("threads-owner") || threadsEntries[0]?.owner;
 
-    this.comments.mastodon = [];
-    this.comments.bluesky = [];
-    this.comments.threads = [];
-    this.comments.microblog = [];
+    // Fresh arrays each connect: connectedCallback runs again if the element
+    // is ever re-attached, and stale replies must not double up.
+    this.comments = { mastodon: [], bluesky: [], threads: [], microblog: [] };
 
     // Micro.blog knows every post on this blog, so its conversation needs no
     // per-post configuration — just the permalink.
@@ -105,11 +94,11 @@ class SocialReplies extends HTMLElement {
     // where the Micro.blog copy has had the mention rewritten and the identity
     // flattened to a display name.
     const seen = new Set();
-    const allComments = [
-      ...(this.comments.mastodon || []),
-      ...(this.comments.bluesky || []),
-      ...(this.comments.threads || []),
-      ...(this.comments.microblog || []),
+    const merged = [
+      ...this.comments.mastodon,
+      ...this.comments.bluesky,
+      ...this.comments.threads,
+      ...this.comments.microblog,
     ]
       .filter((c) => {
         const key = replyKey(c.url);
@@ -118,9 +107,13 @@ class SocialReplies extends HTMLElement {
         seen.add(key);
         return true;
       })
+      // Sorted before promotion as well as after, and not redundantly:
+      // promotion swaps an author comment for its children, whose timestamps
+      // are their own, so this sort is what places them among same-instant
+      // neighbours once the stable sort below runs.
       .sort((a, b) => a.createdAt - b.createdAt);
 
-    const comments = promoteAuthorReplies(allComments).sort(
+    const comments = promoteAuthorReplies(merged).sort(
       (a, b) => a.createdAt - b.createdAt,
     );
 
@@ -173,19 +166,15 @@ class SocialReplies extends HTMLElement {
 
     // Counts, per service rather than summed. A total across four services is a
     // number nothing was ever measured in.
+    const metric = (icon, n) =>
+      `<span class="comments-metric">${icon}${n}</span>`;
     const counted = order
       .filter((k) => this.postStats[k]?.likes || this.postStats[k]?.reposts)
       .map((k) => {
         const s = this.postStats[k];
         const bits = [];
-        if (s.likes)
-          bits.push(
-            `<span class="comments-metric">${icons.favorite}${s.likes}</span>`,
-          );
-        if (s.reposts)
-          bits.push(
-            `<span class="comments-metric">${icons.reblog}${s.reposts}</span>`,
-          );
+        if (s.likes) bits.push(metric(icons.favorite, s.likes));
+        if (s.reposts) bits.push(metric(icons.reblog, s.reposts));
         // Only the name links; the counts are what is being reported.
         // Always linked where there is a URL, including when a service holds
         // several copies — postStats carries the first, which is the original,
@@ -204,6 +193,18 @@ class SocialReplies extends HTMLElement {
       // Before the sentence: what the post collected, then how to add to it.
       header.insertBefore(p, header.querySelector("p"));
     }
+  }
+
+  // A service can hold several copies of the post; likes and reposts accumulate
+  // across them, and the URL kept is the first to arrive — see #renderPostStats.
+  #tallyPostStats(key, url, likes, reposts) {
+    const prev = this.postStats[key];
+    this.postStats[key] = {
+      url: prev?.url || url,
+      likes: (prev?.likes || 0) + (likes || 0),
+      reposts: (prev?.reposts || 0) + (reposts || 0),
+      source: key,
+    };
   }
 
   // Micro.blog's conversation feed is public and CORS-enabled, but keyed by numeric
@@ -226,26 +227,14 @@ class SocialReplies extends HTMLElement {
       // Sending everyone to /mb assumed a Micro.blog account; a reader with only a
       // Mastodon or Bluesky one would land on a sign-in they cannot complete, so
       // all three are offered and the reader picks.
-      const commentBase = `https://micro.blog/account/comments/${postId}`;
-      const target = `?url=${encodeURIComponent(postUrl)}`;
+      const signInUrl = (slug) =>
+        `https://micro.blog/account/comments/${postId}/${slug}?url=${encodeURIComponent(postUrl)}`;
       this.postStats.microblog = {
-        url: `${commentBase}/mb${target}`,
+        url: signInUrl("mb"),
         replyOptions: [
-          {
-            key: "mastodon",
-            name: "Mastodon",
-            url: `${commentBase}/mastodon${target}`,
-          },
-          {
-            key: "bluesky",
-            name: "Bluesky",
-            url: `${commentBase}/bluesky${target}`,
-          },
-          {
-            key: "microblog",
-            name: "Micro.blog",
-            url: `${commentBase}/mb${target}`,
-          },
+          { key: "mastodon", name: "Mastodon", url: signInUrl("mastodon") },
+          { key: "bluesky", name: "Bluesky", url: signInUrl("bluesky") },
+          { key: "microblog", name: "Micro.blog", url: signInUrl("mb") },
         ],
         source: "microblog",
       };
@@ -274,7 +263,7 @@ class SocialReplies extends HTMLElement {
           content: item.content_html || escapeHtml(item.content_text || ""),
           author: {
             name: item.author?.name || `@${username}`,
-            handler: username ? `@${username}` : "",
+            handle: username ? `@${username}` : "",
             url: item.author?.url || "",
             avatar: item.author?.avatar || "",
             alt: item.author?.name || username,
@@ -303,16 +292,12 @@ class SocialReplies extends HTMLElement {
       const replies = data.replies || data;
 
       if (data.stats) {
-        const prev = this.postStats.threads;
-        this.postStats.threads = {
-          url: prev?.url || this.getAttribute("threads")?.split(",")[0]?.trim(),
-          likes: (prev?.likes || 0) + (data.stats.likes || 0),
-          reposts:
-            (prev?.reposts || 0) +
-            (data.stats.reposts || 0) +
-            (data.stats.quotes || 0),
-          source: "threads",
-        };
+        this.#tallyPostStats(
+          "threads",
+          this.getAttribute("threads")?.split(",")[0]?.trim(),
+          data.stats.likes,
+          (data.stats.reposts || 0) + (data.stats.quotes || 0),
+        );
       }
 
       // Build a tree from the flat reply list using replied_to.
@@ -338,7 +323,7 @@ class SocialReplies extends HTMLElement {
               : ""),
           author: {
             name: `@${r.username}`,
-            handler: "",
+            handle: "",
             url: `https://www.threads.net/@${r.username}`,
             avatar: r.profile_picture_url || "",
             alt: r.username,
@@ -379,9 +364,7 @@ class SocialReplies extends HTMLElement {
 
     const [, actor, rkey] = match;
 
-    const options = {
-      ttl: Number(this.getAttribute("cache") || 0),
-    };
+    const options = { ttl: Number(this.getAttribute("cache") || 0) };
 
     // A DID is already what resolveHandle returns; passing one back to it is a 400,
     // not a no-op.
@@ -408,13 +391,12 @@ class SocialReplies extends HTMLElement {
     this.authorAvatar = this.authorAvatar || threadPost?.author?.avatar;
 
     if (threadPost) {
-      const prev = this.postStats.bluesky;
-      this.postStats.bluesky = {
-        url: prev?.url || url,
-        likes: (prev?.likes || 0) + (threadPost.likeCount || 0),
-        reposts: (prev?.reposts || 0) + (threadPost.repostCount || 0),
-        source: "bluesky",
-      };
+      this.#tallyPostStats(
+        "bluesky",
+        url,
+        threadPost.likeCount,
+        threadPost.repostCount,
+      );
     }
 
     const bskyComments = dataFromBluesky(threadData);
@@ -443,17 +425,11 @@ class SocialReplies extends HTMLElement {
     const id = pathname.match(/\/(\d+)$/)?.[1];
     if (!id) return;
 
+    const options = { ttl: Number(this.getAttribute("cache") || 0) };
     const token = this.getAttribute("token");
-    const options = {
-      ttl: Number(this.getAttribute("cache") || 0),
-    };
-    if (token) {
-      options.headers = {
-        Authorization: `Bearer ${token}`,
-      };
-    }
+    if (token) options.headers = { Authorization: `Bearer ${token}` };
 
-    const user = url.pathname.split("/")[1];
+    const user = pathname.split("/")[1];
     const author = `${user}@${url.hostname}`;
 
     const [contextData, statusData] = await Promise.all([
@@ -466,16 +442,15 @@ class SocialReplies extends HTMLElement {
     if (!statusData) this.missingSources.add("mastodon");
 
     if (statusData) {
-      const prev = this.postStats.mastodon;
-      this.postStats.mastodon = {
-        url: prev?.url || url,
-        likes: (prev?.likes || 0) + (statusData.favourites_count || 0),
-        reposts: (prev?.reposts || 0) + (statusData.reblogs_count || 0),
-        source: "mastodon",
-      };
+      this.#tallyPostStats(
+        "mastodon",
+        url,
+        statusData.favourites_count,
+        statusData.reblogs_count,
+      );
     }
 
-    const comments = dataFromMastodon(contextData, author, "mastodon");
+    const comments = dataFromMastodon(contextData, author);
     const topLevel = comments.filter((comment) => comment.parent === id);
 
     const apiBase = this.getAttribute("api-base") || "";
@@ -541,8 +516,8 @@ class SocialReplies extends HTMLElement {
       : `<span class="comment-avatar is-empty" aria-hidden="true"></span>`;
 
     const verifiedHtml = comment.isVerified ? icons.verified : "";
-    const handlerHtml = comment.author.handler
-      ? `<em class="comment-useraddress">${comment.author.handler}</em>`
+    const handleHtml = comment.author.handle
+      ? `<em class="comment-useraddress">${comment.author.handle}</em>`
       : "";
 
     const authorAvatar =
@@ -567,7 +542,7 @@ class SocialReplies extends HTMLElement {
                 <strong class="comment-username">
                   ${comment.author.name}${verifiedHtml}
                 </strong>
-                ${handlerHtml}
+                ${handleHtml}
               </a>
               <a href="${comment.url}" class="comment-address">
                 <time class="comment-time" title="${comment.createdAt.toISOString()}">
@@ -589,6 +564,15 @@ class SocialReplies extends HTMLElement {
         </article>
       `;
   }
+}
+
+function externalLink(url, html) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.innerHTML = html;
+  return a;
 }
 
 /** Replace the bare word "Micro.blog" with the accounts a reader can sign in
@@ -629,12 +613,7 @@ function offerMicroblogIdentities(header, signIns) {
     signIns.forEach((option, i) => {
       if (i)
         put(document.createTextNode(i === signIns.length - 1 ? " or " : ", "));
-      const a = document.createElement("a");
-      a.href = option.url;
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.innerHTML = `${option.name}&nbsp;↗`;
-      put(a);
+      put(externalLink(option.url, `${option.name}&nbsp;↗`));
     });
     put(document.createTextNode(after));
     return true;
@@ -657,12 +636,7 @@ function linkMicroblog(header, url) {
     if (at === -1) continue;
     const word = node.splitText(at);
     word.splitText("Micro.blog".length);
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.innerHTML = "Micro.blog&nbsp;↗";
-    word.replaceWith(a);
+    word.replaceWith(externalLink(url, "Micro.blog&nbsp;↗"));
     return true;
   }
   return false;
@@ -679,6 +653,18 @@ function splitAttr(val) {
         .map((s) => s.trim())
         .filter(Boolean)
     : [];
+}
+
+/** A Threads reference off the shortcode attribute: either a post URL, whose
+ *  path names the owner and shortcode, or a bare shortcode on its own. */
+function parseThreadsRef(ref, mediaId) {
+  try {
+    const m = new URL(ref).pathname.match(
+      /^\/@([\w.]+)\/post\/([A-Za-z0-9_-]+)/,
+    );
+    if (m) return { shortcode: m[2], owner: m[1], mediaId };
+  } catch {}
+  return { shortcode: ref, owner: null, mediaId };
 }
 
 /**
@@ -833,7 +819,7 @@ async function fetchJSON(url, options = {}) {
 /** Mastodon's flat `context.descendants` into the nested shape we render.
  *  Indexed first, linked after: the API returns creation order, so a reply can
  *  arrive before its parent. Anything whose parent is absent stays top-level. */
-function dataFromMastodon(data, author, source) {
+function dataFromMastodon(data, author) {
   const byId = new Map();
 
   for (const status of data?.descendants || []) {
@@ -846,7 +832,7 @@ function dataFromMastodon(data, author, source) {
 
     byId.set(status.id, {
       id: status.id,
-      source,
+      source: "mastodon",
       url: status.url,
       parent: status.in_reply_to_id,
       createdAt: new Date(status.created_at),
@@ -859,7 +845,7 @@ function dataFromMastodon(data, author, source) {
       ),
       author: {
         name: formatEmojis(account.display_name, account.emojis),
-        handler: handle,
+        handle,
         url: account.url,
         avatar: account.avatar_static,
         alt: account.display_name,
@@ -912,7 +898,7 @@ function blueskyReplies(nodes, parentCid, authorDid) {
       content: escapeHtml(post.record.text || ""),
       author: {
         name: post.author.displayName,
-        handler: handle,
+        handle,
         url: `https://bsky.app/profile/${handle}`,
         avatar: post.author.avatar,
         alt: post.author.displayName,
@@ -928,14 +914,12 @@ function blueskyReplies(nodes, parentCid, authorDid) {
 
 customElements.define("social-replies", SocialReplies);
 
+// Everything below runs once per page: find the hidden elements the templates
+// left behind, merge the shortcode's URLs with Micro.blog's per platform, and
+// mount one <social-replies> per article.
+
 const API_BASE = document.documentElement.dataset.socialApiBase || "";
 const CACHE = document.documentElement.dataset.socialCache || "";
-
-const split = (v) =>
-  (v || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
 
 // "Threads ↗" for one URL, "Threads (Here ↗ or Here ↗)" for several. Mirrors the
 // no-JS fallback line the theme used to render server-side. Bracketed rather
@@ -958,11 +942,8 @@ function fragment(name, urls) {
 
 // "A", "A or B", "A, B or C".
 function joinFragments(frags) {
-  return frags.reduce(
-    (acc, f, i) =>
-      i === 0 ? f : i === frags.length - 1 ? `${acc} or ${f}` : `${acc}, ${f}`,
-    "",
-  );
+  if (frags.length < 2) return frags[0] || "";
+  return `${frags.slice(0, -1).join(", ")} or ${frags.at(-1)}`;
 }
 
 function threadsIntent(url) {
@@ -974,6 +955,8 @@ function threadsIntent(url) {
 
 const OFF = new Set(["none", "off", "false"]);
 
+const declares = (raw) => raw !== undefined && raw !== "";
+
 // Per platform, not per post: the shortcode wins where it names a platform, and
 // Micro.blog's own record fills in the rest. The case this is for is one
 // platform going wrong — a cross-post that failed and was done by hand, or a
@@ -982,10 +965,10 @@ const OFF = new Set(["none", "off", "false"]);
 // link to something that no longer exists.
 function pick(declared, auto, key) {
   const raw = declared?.dataset?.[key];
-  if (raw !== undefined && raw !== "") {
-    return OFF.has(raw.trim().toLowerCase()) ? [] : split(raw);
+  if (declares(raw)) {
+    return OFF.has(raw.trim().toLowerCase()) ? [] : splitAttr(raw);
   }
-  return split(auto?.dataset?.[key]);
+  return splitAttr(auto?.dataset?.[key]);
 }
 
 // mount carries the post's own permalink (Micro.blog replies, every post);
@@ -996,22 +979,25 @@ function build(mount, declared, auto) {
   const mastodon = pick(declared, auto, "mastodon");
   const bluesky = pick(declared, auto, "bluesky");
   // The media id belongs with whichever source supplied the Threads URL.
-  const threadsId =
-    declared?.dataset?.threads !== undefined &&
-    declared?.dataset?.threads !== ""
-      ? declared?.dataset?.threadsId
-      : auto?.dataset?.threadsId;
+  const threadsId = declares(declared?.dataset?.threads)
+    ? declared.dataset.threadsId
+    : auto?.dataset?.threadsId;
   const postUrl = mount?.dataset.postUrl || "";
   if (!threads.length && !mastodon.length && !bluesky.length && !postUrl)
     return;
 
-  const frags = [];
-  if (threads.length)
-    frags.push(fragment("Threads", threads.map(threadsIntent)));
-  if (mastodon.length) frags.push(fragment("Mastodon", mastodon));
-  if (bluesky.length) frags.push(fragment("Bluesky", bluesky));
-  if (postUrl) frags.push("Micro.blog");
-  const sentence = joinFragments(frags);
+  const fragsFor = (gone) => {
+    const frags = [];
+    if (threads.length && !gone.has("threads"))
+      frags.push(fragment("Threads", threads.map(threadsIntent)));
+    if (mastodon.length && !gone.has("mastodon"))
+      frags.push(fragment("Mastodon", mastodon));
+    if (bluesky.length && !gone.has("bluesky"))
+      frags.push(fragment("Bluesky", bluesky));
+    if (postUrl && !gone.has("microblog")) frags.push("Micro.blog");
+    return frags;
+  };
+  const sentence = joinFragments(fragsFor(new Set()));
 
   const aside = document.createElement("aside");
   aside.className = "comments-section";
@@ -1027,16 +1013,7 @@ function build(mount, declared, auto) {
   // without them. Rewritten rather than built late: waiting on three APIs before
   // showing the header would leave a hole where it should be.
   const rebuild = (missing) => {
-    const gone = new Set(missing);
-    const kept = [];
-    if (threads.length && !gone.has("threads"))
-      kept.push(fragment("Threads", threads.map(threadsIntent)));
-    if (mastodon.length && !gone.has("mastodon"))
-      kept.push(fragment("Mastodon", mastodon));
-    if (bluesky.length && !gone.has("bluesky"))
-      kept.push(fragment("Bluesky", bluesky));
-    if (postUrl && !gone.has("microblog")) kept.push("Micro.blog");
-
+    const kept = fragsFor(new Set(missing));
     const p = aside.querySelector(".comments-header p");
     if (!p) return;
     if (!kept.length) {
@@ -1076,19 +1053,19 @@ function build(mount, declared, auto) {
 // the query string it was read from.
 const replying = "replying" in document.documentElement.dataset;
 
-const articles = replying
-  ? new Set()
-  : new Set(
-      [
-        ...document.querySelectorAll(
-          ".replies-mount, .replies-data, .replies-auto",
-        ),
-      ].map((el) => el.closest("article") || document.body),
-    );
-for (const article of articles) {
-  build(
-    article.querySelector(".replies-mount"),
-    article.querySelector(".replies-data"),
-    article.querySelector(".replies-auto"),
+if (!replying) {
+  const articles = new Set(
+    [
+      ...document.querySelectorAll(
+        ".replies-mount, .replies-data, .replies-auto",
+      ),
+    ].map((el) => el.closest("article") || document.body),
   );
+  for (const article of articles) {
+    build(
+      article.querySelector(".replies-mount"),
+      article.querySelector(".replies-data"),
+      article.querySelector(".replies-auto"),
+    );
+  }
 }
