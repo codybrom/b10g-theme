@@ -1,0 +1,28 @@
+{{/* Byline for titled posts. Notes don't get one — on a two-sentence note the
+     byline would be longer than the post, and the masthead already says whose
+     site this is.
+
+     Carries the p-author h-card the old post-details.html did, so feed readers
+     and IndieWeb parsers still find an author on a permalink. The card is on the
+     wrapping span rather than the link, because a card that owns a photo needs
+     room for a second element and an <a> inside an <a> is not markup — which
+     means p-name and u-url have to be said out loud, where the anchor being the
+     card itself used to imply both.
+
+     Two hidden anchors, both aria-hidden, neither adding anything to read:
+
+     - u-photo, so an h-entry names a face as well as a person. It is a link and
+       not an <img> for the reason h-card.html gives at length — a hidden <img>
+       is still fetched, and this one would be fetched on every titled post.
+     - u-uid pointing at the home page, which is the uid the representative
+       h-card there claims. Without it this author is "…/about/" and that one is
+       "https://b10g.xyz/", and nothing downstream knows they are one person. The
+       visible link still goes to /about/, which is the page a reader wants. */}}
+{{ $name := .Site.Params.author_name | default "Cody Bromley" }}
+{{ $photo := .Site.Params.author_photo }}
+{{ with $name }}
+  <span class="post-byline">by <span class="p-author h-card"><a class="p-name u-url"
+    href="{{ "/about/" | relURL }}">{{ . }}</a>{{ with $photo }}<a class="u-photo"
+    href="{{ . }}" hidden aria-hidden="true"></a>{{ end }}<a class="u-uid"
+    href="{{ $.Site.Home.Permalink }}" hidden aria-hidden="true"></a></span></span>
+{{ end }}

@@ -1,0 +1,73 @@
+{{/* The representative h-card, for parsers that want to know whose site this is
+     — An IndieWeb Webring's directory reads name, photo and note off it, and it
+     is what indiewebify.me validates.
+
+     Home page only, and hidden. Both are deliberate:
+
+     - Representative means "represents the page it is on", and the algorithm
+       matches a card whose u-url and u-uid equal the page's own URL. That is the
+       home page, which is also the URL the ring has registered. On a permalink
+       the byline's p-author h-card is the right one and this would compete.
+
+     - Nothing here is painted, because the theme has nowhere honest to paint it:
+       no footer, and a masthead that carries the site's identity rather than a
+       person's. The data is on /about, visibly, which is where a reader gets it.
+
+     `hidden` really is enough. php-mf2, which the ring runs, walks the DOM with
+     DOMDocument and XPath and never looks at CSS, the hidden attribute or
+     aria-hidden — there is no mention of any of the three in the parser. Two
+     things it does care about, so do not "simplify" them away:
+
+     - u-photo is a link, not an <img>. parseU takes href from a/area/link and
+       src from img, so both parse — but an <img> inside a hidden element is
+       still fetched by the browser, which would download a portrait on every
+       home page view for nobody to see.
+     - Do not wrap this in <template>. Masterminds\HTML5 is used when present and
+       implements template semantics, which puts the contents in a fragment the
+       parser never walks.
+
+     Renders only once there is something to say, following the rail's Elsewhere
+     and colophon sections: absent data means no markup, not empty markup. */}}
+{{ $name := .Site.Params.author_name | default .Site.Title }}
+{{ $photo := .Site.Params.author_photo }}
+{{ $note := .Site.Params.author_note }}
+{{ $nickname := .Site.Params.author_nickname }}
+{{ $jobTitle := .Site.Params.author_job_title }}
+{{ $org := .Site.Params.author_org }}
+{{ $location := .Site.Params.author_location }}
+
+{{/* The profiles the rail already lists. They are the person's other URLs, which
+     is what u-url means, so the card claims them rather than restating them in a
+     setting of their own — and rel=me alongside, as the spec's own example has
+     it, which is also the second way a card can be found representative. */}}
+{{ $profiles := partial "elsewhere-links.html" . }}
+
+{{/* "Tulsa, Oklahoma" — one field, because a plug-in form of six address inputs
+     for a card nobody sees is not worth the settings page. Split on the comma
+     the way `elsewhere` splits on its own: one part is a locality, two add a
+     region, three add a country. p-locality and p-region are flat properties of
+     h-card, so no nested h-adr is needed to hold them. */}}
+{{ $locality := "" }}
+{{ $region := "" }}
+{{ $country := "" }}
+{{ with $location }}
+  {{ $parts := split . "," }}
+  {{ $locality = trim (index $parts 0) " " }}
+  {{ if gt (len $parts) 1 }}{{ $region = trim (index $parts 1) " " }}{{ end }}
+  {{ if gt (len $parts) 2 }}{{ $country = trim (index $parts 2) " " }}{{ end }}
+{{ end }}
+
+{{ if or $photo $note $nickname $jobTitle $org $location }}
+  <div class="h-card" hidden>
+    <a class="p-name u-url u-uid" href="{{ .Site.Home.Permalink }}">{{ $name }}</a>
+    {{ with $photo }}<a class="u-photo" href="{{ . }}">{{ $name }}</a>{{ end }}
+    {{ with $nickname }}<span class="p-nickname">{{ . }}</span>{{ end }}
+    {{ with $jobTitle }}<span class="p-job-title">{{ . }}</span>{{ end }}
+    {{ with $org }}<span class="p-org">{{ . }}</span>{{ end }}
+    {{ with $locality }}<span class="p-locality">{{ . }}</span>{{ end }}
+    {{ with $region }}<span class="p-region">{{ . }}</span>{{ end }}
+    {{ with $country }}<span class="p-country-name">{{ . }}</span>{{ end }}
+    {{ with $note }}<p class="p-note">{{ . }}</p>{{ end }}
+    {{ range $profiles }}<a class="u-url" rel="me" href="{{ .url }}">{{ .title }}</a>{{ end }}
+  </div>
+{{ end }}

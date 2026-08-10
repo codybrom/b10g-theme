@@ -1,0 +1,2425 @@
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-italic.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-ext-normal.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-ext-italic.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* The monospace face, for code and for quoted voices. Self-hosted for the same
+   reasons as Inter above, split the same way, and it replaces a stack that
+   resolved to whatever each machine happened to call a monospace — SF Mono here,
+   Consolas there, Courier at the end of the road. OFL 1.1; see THIRD-PARTY.md.
+
+   Its advance is 0.6em, which is SF Mono's too, so the swap costs no reflow: the
+   glyphs change and every line stays exactly as wide as it was. */
+@font-face {
+  font-family: "Google Sans Code";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("../fonts/google-sans-code-latin-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Google Sans Code";
+  font-style: italic;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("../fonts/google-sans-code-latin-italic.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Google Sans Code";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("../fonts/google-sans-code-latin-ext-normal.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Google Sans Code";
+  font-style: italic;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("../fonts/google-sans-code-latin-ext-italic.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* The wordmark face: ChiKareGo2, Giles Booth's pixel-faithful redrawing of Susan
+   Kare's Chicago. CC BY — see THIRD-PARTY.md.
+
+   A bitmap drawn on a 16-per-em grid, so a cell is exactly 1px at 16px and the
+   letters land whole. Subset to Latin-1: it sets the site title and nothing
+   else. */
+@font-face {
+  font-family: ChiKareGo2;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/chikarego2.woff2") format("woff2");
+}
+
+/* modern-normalize */
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+/* modern-normalize */
+b,
+strong {
+  font-weight: bolder;
+}
+
+/* modern-normalize */
+code,
+kbd,
+samp,
+pre {
+  font-family:
+    ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace; /* 1 */
+  font-size: 1em; /* 2 */
+}
+
+/* modern-normalize */
+small {
+  font-size: 80%;
+}
+
+/* modern-normalize */
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+/* modern-normalize */
+sub {
+  bottom: -0.25em;
+}
+
+/* modern-normalize */
+sup {
+  top: -0.5em;
+}
+
+/* modern-normalize */
+table {
+  border-color: currentcolor;
+}
+
+/* modern-normalize */
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit; /* 1 */
+  font-size: 100%; /* 1 */
+  line-height: 1.15; /* 1 */
+  margin: 0; /* 2 */
+}
+
+/* modern-normalize */
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  appearance: button;
+  -webkit-appearance: button;
+}
+
+/* modern-normalize */
+legend {
+  padding: 0;
+}
+
+/* modern-normalize */
+progress {
+  vertical-align: baseline;
+}
+
+/* modern-normalize */
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/* modern-normalize */
+[type="search"] {
+  appearance: textfield; /* 1 */
+  -webkit-appearance: textfield; /* 1 */
+  outline-offset: -2px; /* 2 */
+}
+
+/* modern-normalize */
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/* modern-normalize */
+::-webkit-file-upload-button {
+  -webkit-appearance: button; /* 1 */
+  font: inherit; /* 2 */
+}
+
+/* modern-normalize */
+summary {
+  display: list-item;
+}
+
+/* Reachable despite the theme writing no buttons: lightbox close, comment
+   toggle, Pagefind, and Micro.blog's reply form. */
+button,
+input[type="submit"] {
+  align-items: center;
+  background: inherit;
+  border: 1px solid;
+  color: inherit;
+  column-gap: 0.5em;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 2.75em;
+  padding: 0.7em;
+  text-align: center;
+  text-decoration: none;
+}
+:is(button, input[type="submit"]):not(:disabled) {
+  cursor: pointer;
+}
+:is(button, input[type="submit"]):disabled {
+  opacity: 0.33;
+  pointer-events: none;
+}
+input[type="text"],
+textarea {
+  background: inherit;
+  border: 1px solid;
+  color: inherit;
+  display: block;
+  min-height: 2.75em;
+  padding: 0.7em;
+  width: 100%;
+}
+textarea {
+  appearance: auto;
+  -webkit-appearance: initial;
+  min-height: 3em;
+  resize: vertical;
+}
+:root {
+  /* One color mode, pinned to dark on <html>, so the palette is not behind
+   [data-theme="dark"]. */
+  --ink: #f2f5fa;
+  --text: #d4d9e2;
+  /* dim/accent tuned to clear WCAG AAA against bg and raised. */
+  --dim: #a2aabb;
+  --line: #333c4f;
+  --bg: #13171e;
+  --raised: #1a1f28;
+  --red: #f45757;
+  --accent: #78a0ff;
+  --rule: solid 1px var(--line);
+  /* The dotted counterpart, for anything that is not the page's own voice:
+     a quotation, and the replies. One token because the dot size is the
+     whole tell — two widths of it in one view read as two unrelated
+     textures rather than one idea. */
+  --rule-dotted: dotted 2px var(--line);
+  --radius: 6px;
+  --radius-sm: 4px;
+  /* Spacing scale. em values stay em — they track their element's font size. */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-7: 2rem; /* 32px */
+  --space-8: 2.5rem; /* 40px */
+  --space-9: 3rem; /* 48px */
+  --space-10: 5rem; /* 80px */
+
+  /* sheet = stream + gap + rail + 2*sheet-pad. Keep this true. */
+  --sheet: 71.25rem; /* 1140px */
+  --sheet-pad: 6rem; /* 96px */
+  --stream: 44.25rem; /* 708px */
+  --gutter: 10rem; /* 160px — the timestamp column */
+  --gutter-gap: var(--space-9); /* 48px  */
+  --gap: var(--space-10); /* 80px */
+  --rail: 10rem; /* 160px */
+  /* Not 81ch: the ch unit is the "0" advance (9.3px), not prose advance. */
+  --measure: 39.5rem; /* 632px ≈ 81 characters at 15px */
+  --entry: var(--space-9);
+  /* Self-hosted Inter. This once sat behind @supports naming rsms.me's
+   InterVariable, which no longer exists — the gate silently dropped the site
+   to -apple-system. Don't reintroduce it. */
+  --font-family-ui: Inter, -apple-system, system-ui, sans-serif;
+  --font-family-mono:
+    "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-family-wordmark: ChiKareGo2, var(--font-family-mono);
+  --font-body: 0.9375rem/1.7 var(--font-family-ui); /* 15px */
+  --body-tracking: -0.01em;
+  --font-small: clamp(0.85rem, 4vw, 0.9rem) / 1.4 var(--font-family-ui);
+  /* Override the token, not <body>: .body { font: var(--font-body) } is set above. */
+  --font-small-ui: 0.8125rem/1.5 var(--font-family-ui);
+  --font-small-ui-tight: 0.8125rem/1 var(--font-family-ui);
+  --font-label: 500 0.6875rem/1 var(--font-family-ui);
+  --label-tracking: 0.09em;
+  /* One mono for the whole theme now that we ship one: code, the timestamps, the
+     nav and quoted voices all speak in the same face. This was a twelve-deep
+     stack ending at Courier. */
+  --font-code: 0.9em/1.5 var(--font-family-mono);
+  --pagefind-ui-scale: 0.8;
+  --pagefind-ui-primary: var(--ink);
+  --pagefind-ui-text: var(--ink);
+  --pagefind-ui-background: var(--raised);
+  --pagefind-ui-border: var(--line);
+  --pagefind-ui-tag: var(--raised);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: var(--radius);
+  --pagefind-ui-image-border-radius: var(--radius);
+  --pagefind-ui-image-box-ratio: 3/2;
+  --pagefind-ui-font: var(--font-family-ui);
+  color-scheme: dark;
+  font-feature-settings:
+    "liga" 1,
+    "calt" 1;
+}
+a {
+  color: var(--ink);
+}
+a:hover {
+  color: var(--dim);
+  text-decoration: none;
+}
+table {
+  margin: 1em 0;
+}
+table td,
+table th {
+  padding-right: 1em;
+}
+/* The scroll container the render-table hook wraps every table in. A table has
+   no natural maximum width, and the post body does, so a wide one used to push
+   the whole page sideways. Overflow belongs here rather than on the table
+   because a table is not a block container and ignores it.
+
+   The margin moves here with it: two stacked margins would otherwise collapse
+   against each other everywhere except inside this new scroll container, where
+   they cannot, leaving tables spaced differently from every other block. */
+.table-wrap {
+  margin: 1em 0;
+  overflow-x: auto;
+}
+.table-wrap > table {
+  margin: 0;
+}
+/* No :focus-visible rule here on purpose. tabindex="0" makes the container
+   focusable so a keyboard can reach content only a horizontal drag exposes, and
+   the blanket :focus-visible rule further down already draws the ring. */
+/* Column alignment from the markdown delimiter row. Emitted as a class rather
+   than an inline style so b10g.css can still be overridden by b10g.css. */
+.align-left {
+  text-align: left;
+}
+.align-center {
+  text-align: center;
+}
+.align-right {
+  text-align: right;
+}
+code,
+pre {
+  font: var(--font-code);
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+}
+/* Chroma writes the block's own background and every token colour inline, so the
+   box around them is all that is left to us: room to breathe, the same radius as
+   the other raised surfaces, and somewhere for a long line to go rather than out
+   through the side of the page.
+
+   The background here is for the blocks Chroma does not touch — a fence with no
+   language on it arrives unstyled — and is simply overridden on the ones it
+   does. */
+pre {
+  background: var(--raised);
+  border-radius: var(--radius);
+  margin: 1.5em 0;
+  overflow-x: auto;
+  padding: var(--space-4);
+}
+:not(pre) > code {
+  background: var(--raised);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.95em;
+  letter-spacing: inherit;
+  padding: 0 var(--space-1);
+}
+:focus {
+  z-index: 1;
+}
+:focus-visible {
+  outline-color: var(--line);
+  outline-offset: 2px;
+  outline-style: solid;
+  outline-width: 1px;
+}
+/* Except the resume marker post/single.html leaves at the end of a summary. It
+   takes focus so a screen reader carries on from where the excerpt stopped, but
+   it is an invisible marker with no height, not a control, and the ring above
+   drew it as a hairline box straight across the column. Nothing can tab to it —
+   focus only ever arrives here by following #more. */
+#more:focus,
+#more:focus-visible {
+  outline: none;
+}
+hr {
+  background: none;
+  border: none;
+  border-top: 1px solid;
+  color: var(--line);
+  margin: var(--space-10) 0;
+}
+b,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.badge {
+  border: var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--dim);
+  display: inline-block;
+  padding: 0.2em 0.6em;
+  text-decoration: none;
+}
+.badge:hover {
+  background-color: var(--line);
+}
+.badge-count {
+  font-variant-numeric: tabular-nums;
+}
+.body {
+  color: var(--text);
+  font: var(--font-body);
+  letter-spacing: var(--body-tracking);
+}
+.body > :first-child {
+  margin-top: 0;
+}
+.body h2,
+.body h3,
+.body h4,
+.body h5,
+.body h6 {
+  text-wrap: balance;
+  color: var(--ink);
+  margin: 1.5em 0 0.5em;
+}
+.body h1 {
+  text-wrap: balance;
+  border-bottom: var(--rule);
+  font: 600 clamp(2rem, 10vw, 4rem) / 1 var(--font-family-ui);
+  letter-spacing: -0.03em;
+  padding-bottom: 0.1em;
+}
+.body h2 {
+  border-bottom: var(--rule);
+  font: 600 clamp(1.5rem, 8vw, 2rem) / 1.2 var(--font-family-ui);
+  letter-spacing: -0.015em;
+  padding-bottom: 0.2em;
+}
+.body b,
+.body strong,
+.body h1,
+.body h2,
+.body :not(pre) > code {
+  color: var(--ink);
+}
+.body img {
+  max-width: 100%;
+}
+.body .header-anchor {
+  color: inherit;
+  text-decoration: none;
+}
+.body sup > a {
+  background: var(--raised);
+  border: 1px solid var(--raised);
+  display: inline-block;
+  line-height: 1;
+  margin: 0 0.1em;
+  padding: 0.2em;
+  text-decoration: none;
+}
+.body sup > a:hover {
+  border-color: var(--red);
+}
+.body sup > a:target {
+  border: 1px solid var(--red);
+}
+.emptyState {
+  background-color: var(--raised);
+  border-radius: var(--radius);
+  color: var(--dim);
+  font: var(--font-body);
+  padding: 2em;
+}
+.search .pagefind-ui__search-input {
+  font-weight: 400;
+}
+.search .pagefind-ui__search-input::placeholder {
+  color: var(--dim);
+  opacity: 1;
+}
+.search .pagefind-ui__search-input:focus {
+  background: var(--bg);
+}
+.search .pagefind-ui__search-clear {
+  background: none;
+  z-index: 2;
+}
+/* Survive Pagefind's own stylesheet going missing.
+
+   /pagefind/ is generated by the platform when the search index is built, not by
+   this theme, so it can 404 while the page still links it — and a pagefind-ui.js
+   already in someone's cache will go on building the control with nothing to
+   style it. What that looked like: the theme's generic button rule painted the
+   Clear button as a bordered box, `suppressed` no longer hid it, it wrapped onto
+   a second line under the 2.25rem input, and the masthead grew 31px around the
+   wreckage — tagline pushed off its baseline, "Clear" sitting across the
+   wordmark.
+
+   Both rules are no-ops when Pagefind's stylesheet loads: `suppressed` is its own
+   class for a control that should not be seen, and it positions this button out
+   of flow anyway. */
+.search .pagefind-ui__suppressed {
+  display: none;
+}
+.search :is(button, input[type="submit"]) {
+  border: 0;
+  min-height: 0;
+}
+.search .pagefind-ui__results-area {
+  margin-top: 0;
+}
+.search .pagefind-ui__result {
+  border-bottom: none !important;
+}
+/* No font of its own: it inherits .toc-sidebar's, which is the rail's. The list
+   sits directly above Elsewhere on a wide viewport and read a size larger than
+   the links under it. */
+.toc {
+  margin-bottom: var(--space-8);
+}
+.pagination ul {
+  column-gap: var(--space-7);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+}
+.pagination ul:has(.pagination-page) {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+.pagination a {
+  color: var(--dim);
+  display: block;
+  text-decoration: none;
+}
+.pagination a:hover strong {
+  text-decoration: underline;
+}
+.pagination strong {
+  color: var(--ink);
+  display: block;
+}
+.pagination-prev {
+  grid-column: 1;
+  text-align: left;
+}
+.pagination-page {
+  grid-column: 2;
+  text-align: center;
+}
+.pagination-next {
+  grid-column: -2;
+  text-align: right;
+}
+@media only screen and (max-width: 576px) {
+  .pagination strong {
+    display: none;
+  }
+}
+/* Chroma emits <code class="language-*"> on fenced blocks even though it
+   writes token colors inline, so this is reachable. Nothing puts the class
+   on <pre>. */
+code[class*="language-"] {
+  border-radius: var(--radius);
+  color: var(--ink);
+  direction: ltr;
+  font: var(--font-code);
+  hyphens: none;
+  tab-size: 4;
+  text-align: left;
+  white-space: pre;
+  word-break: normal;
+  word-spacing: normal;
+}
+code[class*="language-"] ::selection,
+code[class*="language-"]::selection {
+  background: hsla(0, 0%, 93%, 0.15);
+}
+
+.sheet {
+  max-width: var(--sheet);
+  margin: 0 auto;
+  padding: 0 var(--sheet-pad);
+  border-left: var(--rule);
+  border-right: var(--rule);
+  min-height: 100vh;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail);
+  column-gap: var(--gap);
+  /* start, not baseline: cap height scales with font size. See text-box below. */
+  align-items: start;
+  padding: var(--entry) 0 var(--space-10);
+}
+.layout > .stream {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  max-width: var(--stream);
+}
+
+.layout > .aside-col {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 2rem;
+}
+.stream > :first-child {
+  margin-top: 0;
+}
+
+/* The row is a lockup, an icon button and an input as much as it is text, so its
+   items centre on each other. Baseline alignment also stopped working once
+   .masthead-home stopped exposing the wordmark's baseline (see below) — it fell
+   back to that link's bottom edge, dropping the tagline half a line. */
+.masthead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  padding: var(--space-10) 0 var(--space-2);
+  border-bottom: var(--rule);
+}
+/* center, not baseline: the mark is a pixel glyph with no baseline of its own, so
+   baseline alignment hung the wordmark off its underside. The pair reads as one
+   lockup only if the name is centred on the mark — and it needs no nudging to get
+   there. The face's declared ascent and descent are slack enough that centring
+   the line box lands the mark's middle on the middle of the letters themselves,
+   with only the g's tail hanging past it. */
+.masthead-home {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--ink);
+}
+/* 24px, not 20: the artwork is 12 cells tall, so this is the height that puts it
+   on two whole pixels a cell — the same cell the wordmark beside it is drawn at.
+   At 20px the mark's own grid fell on thirds of a pixel. */
+.mark {
+  height: 24px;
+  width: auto;
+  flex: none;
+}
+/* 2rem, and the size is not free to be anything else: the face is a bitmap on a
+   16-per-em grid, so only multiples of 16px land a cell on whole pixels. 32px
+   draws it two pixels to the cell; 16px, the next size down, is the original
+   Mac's own and reads small next to the mark. The face carries its own
+   two-pixel sidebearings, so no tracking, and no uppercasing: Chicago was drawn
+   for mixed case. */
+.wordmark {
+  font: 400 2rem/1 var(--font-family-wordmark);
+  letter-spacing: 0;
+  /* The grid is the point — let the cells stay square. */
+  -webkit-font-smoothing: none;
+  /* Optical, not arithmetic: centring the line box leaves the letters reading a
+     touch high against the mark, because only the g drops below the baseline
+     while five letters reach above the x-height. A whole pixel settles it —
+     whole, so the bitmap stays on the device grid. */
+  transform: translateY(1px);
+}
+.tagline {
+  font: var(--font-small-ui-tight);
+  color: var(--dim);
+  /* Centred on the wordmark's letters, not on its box. The bitmap face declares
+     three cells of slack above its tallest glyph, so once the boxes are centred
+     the two x-heights — which is what the eye actually lines up — sit 2px apart.
+     Measured against the x-height rather than the whole ink box, so a tagline
+     with no descenders in it lands in the same place as this one. */
+  transform: translateY(2px);
+}
+.mast-menu {
+  display: none;
+  margin-left: auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  /* 12px against the button's 13px of optical padding, so the bar's right edge
+   lands on the content edge. */
+  margin-right: calc(var(--space-3) * -1);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--dim);
+  cursor: pointer;
+}
+.mast-menu:hover {
+  color: var(--ink);
+}
+.mast-menu-bars,
+.mast-menu-bars::before,
+.mast-menu-bars::after {
+  display: block;
+  width: 1.125rem;
+  height: 1px;
+  background: currentColor;
+}
+.mast-menu-bars {
+  position: relative;
+}
+.mast-menu-bars::before,
+.mast-menu-bars::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+.mast-menu-bars::before {
+  top: -0.375rem;
+}
+.mast-menu-bars::after {
+  top: 0.375rem;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(0 0 0 / 55%);
+}
+
+.rail-nav {
+  display: none;
+}
+
+.mast-nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+.mast-nav a {
+  font: 0.75rem/1 var(--font-family-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-decoration: none;
+}
+.mast-nav a:hover {
+  color: var(--ink);
+}
+.mast-nav a[aria-current="page"] {
+  color: var(--accent);
+}
+
+.post {
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr);
+  column-gap: var(--gutter-gap);
+  align-items: start;
+}
+.post > * {
+  grid-column: 2;
+  min-width: 0;
+}
+.post > .post-time {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* Box top = cap top, so align-items: start lines up the caps exactly. */
+@supports (text-box-trim: trim-start) {
+  .post > .post-time,
+  .post > .post-title,
+  .post > .post-excerpt > :first-child,
+  .post > .post-body > :first-child {
+    text-box-trim: trim-start;
+    text-box-edge: cap alphabetic;
+  }
+}
+
+.post-time {
+  margin: 0;
+}
+.post-date {
+  display: block;
+}
+.post-clock {
+  display: block;
+  margin-top: var(--space-1);
+}
+
+.post-time a {
+  font: 0.75rem/1 var(--font-family-mono);
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-decoration: none;
+}
+.post-time a:hover {
+  color: var(--ink);
+}
+
+.post-title {
+  font: 700 1.5rem/1.3 var(--font-family-ui);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 var(--space-1);
+}
+.post-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.post-title a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.post-body p,
+.post-excerpt p {
+  margin: 0 0 0.75em;
+}
+.post-body p:last-child,
+.post-excerpt p:last-child {
+  margin-bottom: 0;
+}
+
+.post-hashtags {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
+.post-hashtags .hashtag {
+  font: var(--font-small-ui-tight);
+  color: var(--dim);
+  text-decoration: none;
+}
+.post-hashtags .hashtag:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* A quote should read as quoted, not merely indented. A rule down the left and
+   dimmer text mark it as someone else's voice; the right indent goes, so the
+   lines still break like the prose around them.
+
+   :not(.toot) — a syndicated toot is a card, styled on its own further down. */
+blockquote:not(.toot) {
+  border-left: var(--rule-dotted);
+  color: var(--dim);
+  /* Mono italic, which is the theme's other voice already — the timestamps, the
+     nav and the wordmark's fallback all speak in it — so a quote reads as coming
+     from somewhere other than the prose without needing a rule to say so.
+
+     Sized down a touch because mono x-heights run large at the same nominal size,
+     tracked at zero because the face's own widths already do that work, and set
+     looser: mono at prose measure needs the leading. */
+  font-family: var(--font-family-mono);
+  font-style: italic;
+  font-size: 0.95em;
+  letter-spacing: 0;
+  line-height: 1.75;
+  margin: 1.5em 0;
+  padding: 0.1em 0 0.1em var(--space-5);
+}
+blockquote:not(.toot) > :last-child {
+  margin-bottom: 0;
+}
+
+.page-navigation {
+  margin-bottom: var(--space-10);
+}
+.page-navigation ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+.page-pagination {
+  border-top: var(--rule);
+  margin-top: var(--space-10);
+}
+.postList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.postList article.post + article.post,
+.postList li.post + li.post {
+  margin-top: var(--entry);
+}
+.post-header {
+  margin-bottom: var(--space-8);
+}
+.post-details {
+  display: flex;
+  flex-flow: row wrap;
+  row-gap: 1em;
+  column-gap: 0.5em;
+  align-items: center;
+  font: var(--font-small);
+  color: var(--dim);
+}
+.post-details p {
+  margin: 0;
+}
+.post-details p::after {
+  content: "•";
+  padding-left: 0.5em;
+  align-self: stretch;
+}
+.post-details p:last-of-type {
+  margin-right: 0.5em;
+}
+.post-details p:last-of-type::after {
+  display: none;
+}
+.post-details a {
+  color: inherit;
+}
+
+.post-excerpt > :last-child,
+.post-excerpt > p:last-of-type {
+  margin-bottom: 0;
+}
+
+.post-excerpt {
+  margin-bottom: 1em;
+}
+/* Replies sit on the page rather than in a box — but set apart from it, because
+   they are other people talking and not more of the post.
+
+   A raised panel around the whole lot was one answer, and the wrong one: nothing
+   else on a post has a container, so the section read as a widget bolted to the
+   bottom. Taking the panel away and leaving them flat was the other wrong one —
+   on the post's own ground, at the post's own measure and colour, they read as
+   three more sections of the article.
+
+   So: the mark this theme already uses for somebody else's voice. A dotted rule
+   down the side, the same one a blockquote carries, with the text a step quieter
+   and the column a step narrower than the prose above. Every rule inside the
+   section is dotted too — depth and separation alike — and all of them at the
+   one width, since the dot itself is the mark and two sizes of it read as two
+   different textures. What tells this one apart is its length. */
+.comments {
+  display: block;
+  margin-top: var(--space-5);
+  border-left: var(--rule-dotted);
+  /* Tracks the viewport rather than sitting at a fixed 20px: on a phone the
+     indent comes straight out of the reading width. */
+  padding-left: clamp(var(--space-3), 3vw, var(--space-5));
+  color: var(--dim);
+  font: var(--font-small);
+
+  & a {
+    color: currentColor;
+  }
+
+  & ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  & li {
+    container-type: inline-size;
+  }
+
+  /* Depth is a rule down the left, not a rule across the top.
+
+     Nesting used to be indent plus a full-width horizontal rule, which drew the
+     same line between a reply and its own answer as between two unrelated
+     replies — so the shape of a conversation was carried by the indent alone,
+     and at 12px of it that is not much. The rule runs the height of the thread
+     instead, which is the thing it is describing.
+
+     Indented by the avatar column so a nested reply's picture lines up under its
+     parent's words, capped in container units so three levels deep still leaves
+     room to read on a phone. */
+  & li ul {
+    margin-top: var(--space-5);
+    margin-left: min(calc(var(--avatar-size) / 2), 5cqw);
+    padding-left: min(calc(var(--avatar-size) / 2), 5cqw);
+    border-left: var(--rule-dotted);
+  }
+
+  /* Space, not a rule. Every reply already opens with a picture and a name,
+     which is a strong enough start that a line above it only adds to the count —
+     and between the rule down the region and one more per level of nesting,
+     the section had more lines in it than it had replies. */
+  > ul > li + li {
+    margin-top: var(--space-6);
+  }
+
+  /* On the list, not on each article: the separators between replies are drawn
+     on the list items, and capped only at the article they overshot the column
+     they were dividing. */
+  > ul {
+    --avatar-size: clamp(30px, 10cqw, 38px);
+    max-width: 34rem; /* 544px, against the post's 632px */
+  }
+}
+
+/* Picture and words as two columns, so the words keep their column whether or
+   not the picture arrived. The old layout floated the avatar out of the name
+   link and had the body clear it with a padding-left — which meant a reply with
+   no avatar kept the indent under its text but lost it under its name, and the
+   two halves of one comment stopped lining up. */
+.comment {
+  display: grid;
+  grid-template-columns: var(--avatar-size) 1fr;
+  column-gap: var(--space-3);
+  align-items: start;
+}
+.comment-figure {
+  position: relative;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+}
+/* Lets the words column actually shrink, which is the other half of the fix
+   above: without it the column floors at its content's min-content width. */
+.comment-main {
+  min-width: 0;
+}
+.comment-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+/* Nothing to show, but the column still has to hold its width or the comment
+   below it lines up somewhere else. */
+.comment-avatar.is-empty {
+  background: var(--raised);
+  border: var(--rule);
+}
+/* Positioned against the cell, not calculated back from the avatar's size. */
+.comment-author {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 18px;
+  height: 18px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--dim);
+}
+.comment-verified {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: var(--space-1);
+  /* Was Instagram blue, which made a verification tick the loudest thing in a
+     section that is otherwise two greys. */
+  opacity: 0.6;
+}
+
+.comment-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-2);
+  /* No gap: the stamp's own leading is the only separation it needs from the
+     name, and anything on top of that started to read as a line of its own
+     rather than as part of the same label. */
+  row-gap: 0;
+}
+.comment-user {
+  text-decoration: none;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-2);
+  min-width: 0;
+}
+/* A fediverse handle is one unbreakable word and some of them are very long —
+   @prettygood@socially.drinkingatmy.computer is a real one in this thread. Left
+   alone it sets the min-content width of the whole column, and since a grid item
+   floors at that unless told otherwise, the width wins over the viewport and the
+   page scrolls sideways on a phone. */
+.comment-username,
+.comment-useraddress {
+  overflow-wrap: anywhere;
+}
+.comment-user:hover .comment-username {
+  text-decoration: underline;
+}
+.comment-username {
+  color: var(--text);
+  font-weight: 600;
+}
+.comment-useraddress {
+  font-style: normal;
+}
+/* The stamp, in the face every other stamp on the site is set in — the post's
+   own dateline, the nav, the code. It was the section's last piece of body type
+   pretending to be metadata. */
+/* Its own line under the name, carrying the mark of the service it came from.
+
+   Set in the body face at mixed case, not in the letterspaced mono uppercase the
+   post's own dateline uses: that treatment works in the gutter with nothing
+   near it, and inline against a name and a handle it was a third competing
+   voice in a three-word row. */
+.comment-address {
+  color: currentColor;
+  text-decoration: none;
+  flex: 0 0 100%;
+}
+.comment-address:hover {
+  opacity: 1;
+  color: var(--ink);
+}
+/* Bound to the name above it rather than floating between the name and the
+   words — the footer's own row gap is all that separates them, where the body
+   below gets twice that. Held at the weight of the service mark beside it: the
+   two are one piece of information, and the mark was already the quieter half.
+   The opacity lives here, not on the icon, so they cannot drift apart. */
+.comment-time {
+  display: flex;
+  align-items: center;
+  column-gap: var(--space-2);
+  /* A step under the handle above it — subordinate to the name, not a peer. */
+  font: 0.75rem/1.35 var(--font-family-ui);
+  opacity: 0.7;
+}
+.comment-time svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
+.comment-body {
+  margin-top: var(--space-2);
+  line-height: 1.6;
+
+  .invisible {
+    display: none;
+  }
+  .ellipsis::after {
+    content: "…";
+  }
+  .mention {
+    text-decoration: none;
+    color: var(--text);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+.comment-body p {
+  margin: 0 0 0.75em;
+}
+.comment-body > :last-child {
+  margin-bottom: 0;
+}
+/* A pasted URL is one unbroken word and will push the column open otherwise. */
+.comment-body a {
+  overflow-wrap: anywhere;
+}
+
+/* One row: what the reply got, then the way to answer it. */
+.comment-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  font: var(--font-small-ui);
+}
+.comment-counts > span {
+  display: inline-flex;
+  align-items: center;
+  /* Tight to the mark it counts. At the row's own gap the number floated
+     between its icon and the next one, and read as belonging to neither. */
+  column-gap: var(--space-1);
+}
+.comment-counts svg {
+  width: 0.9em;
+  height: 0.9em;
+  fill: currentColor;
+  opacity: 0.7;
+}
+.comment-liked-by-author {
+  padding: 2px 6px 2px 4px;
+  border-radius: 999px;
+  border: var(--rule);
+}
+.comment-liked-by-author img {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+/* Quieter than the words it follows, and quieter than the counts beside it: it
+   is a way out of the page, offered once per reply and wanted by almost nobody
+   who reads one. The arrow went with the emphasis — at this size it read as
+   punctuation on the end of a sentence rather than as a direction. */
+.comment-reply-link {
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: 0.85em;
+  opacity: 0.55;
+}
+.comment-reply-link:hover {
+  opacity: 1;
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* Deeper than three levels the thread is collapsed behind this. */
+.comment-more {
+  background: none;
+  border: var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--dim);
+  cursor: pointer;
+  font: var(--font-small-ui);
+  margin-top: var(--space-4);
+  padding: var(--space-1) var(--space-3);
+}
+.comment-more:hover {
+  color: var(--ink);
+}
+
+.mast-search {
+  position: relative;
+  flex: 0 0 auto;
+}
+/* Pagefind builds its control into this div on DOMContentLoaded. Empty it is
+   0×0, so the masthead used to grow by 31px the moment the script ran and the
+   whole page dropped with it. Reserve the collapsed control's box up front.
+
+   4rem is Pagefind's own input height before its scale token is applied, so this
+   tracks --pagefind-ui-scale instead of hard-coding the 51px it currently
+   computes to. On .search, not .mast-search: .search is only rendered when
+   search is switched on, so switching it off reserves nothing. */
+.search {
+  min-height: calc(4rem * var(--pagefind-ui-scale));
+  min-width: 2.25rem;
+}
+/* Collapsed to Pagefind's magnifier until used. The input is clipped, not
+   removed, so it stays focusable with no JS. */
+.mast-search .pagefind-ui__form {
+  width: 2.25rem;
+  /* Clipped, not just narrowed: Pagefind pads the input to clear its magnifier
+     and Clear button, so it cannot shrink past ~90px and would otherwise sit
+     over the menu button, swallowing its clicks. */
+  overflow: hidden;
+}
+.mast-search:focus-within .pagefind-ui__form,
+.mast-search
+  .pagefind-ui__form:has(.pagefind-ui__search-input:not(:placeholder-shown)) {
+  width: 18rem;
+  /* Declared on the open state, not on the closed one, so the field animates
+     open and snaps shut. That asymmetry is deliberate. Closing changes two
+     things at once and only one of them can be timed: the nav and tagline
+     return the instant the selector stops matching, because display is not an
+     animatable property, while the field takes 0.18s to give the row back. For
+     that 0.18s the masthead has to hold everything at once and cannot, so it
+     wrapped the field to a second line and stood 40px taller before settling —
+     measured at 11 frames of it, which is exactly the flash you see on close.
+     A transition only runs when the state being entered declares one, so this
+     keeps the opening animation and makes the close a single frame. */
+  transition: width 0.18s ease;
+  /* Released once open, and it must be: Pagefind renders the results drawer
+     *inside* this form, so `overflow: hidden` clipped every result away — the
+     drawer sits at top: 100%, entirely outside the box doing the clipping.
+     Open is exactly when the form is wide enough not to need clipping. */
+  overflow: visible;
+}
+/* Opening the field adds ~16rem to a row that had no room for it, so .mast-search
+   wrapped to a line of its own and the entire page below it dropped by a row. The
+   nav gives way instead: it is the only item here that is purely navigational.
+
+   How long it gives way for is the part to be accurate about, because it is
+   longer than "while you are typing". The condition is focus OR a non-empty
+   field, and the second half is deliberate: the field stays 18rem wide and
+   unclipped while a query exists (see .pagefind-ui__form above) so the results
+   drawer is readable after you click away from the input, and at that width the
+   row cannot hold the nav and the tagline as well — that is the same 21px
+   overflow the block below documents. Tying the two states together is what
+   keeps the masthead from re-wrapping the moment focus leaves.
+
+   So on desktop, while a query is in the box, About and Archive are genuinely
+   not on the page: .rail-nav carries the same links but is display:none above
+   the breakpoint. They come back when the field is empty again — Escape, or
+   Pagefind's own Clear button inside the field — not merely when it is blurred.
+   If that ever needs to change, the field's width rule has to change with it.
+
+   Below 60em none of this applies — .mast-nav is hidden outright there and the
+   mobile block gives the open field the full width of the masthead. */
+@media (min-width: 60em) {
+  /* Open search takes the masthead over: everything but the wordmark stands
+     down, and the field spends the row rather than a fixed 18rem of it.
+
+     Filling is the part that matters. Hiding the nav alone is not enough — on a
+     1000px sheet the row is 806px and wordmark + tagline + an 18rem field come to
+     827px, so it still dropped to its own line, 21px short. Hiding the tagline as
+     well fixed that width and left the next one to be found by whoever next
+     lengthens a tagline or a title. A field sized to what remains cannot overflow
+     at any width, so there is no arithmetic here to fall out of date.
+
+     Which is why this stands the children down by exclusion rather than naming
+     .mast-nav and .tagline one at a time, matching the mobile block's
+     `> :not(.mast-search)` form: a masthead child added later would otherwise
+     keep its width and bring the wrap straight back, and that is a bug you debug
+     from scratch rather than recognise. The wordmark is the one exception — it is
+     neither navigation nor description, and it keeps the header from going blank
+     while someone types. */
+  .masthead:has(
+      .mast-search:focus-within,
+      .pagefind-ui__search-input:not(:placeholder-shown)
+    )
+    > :not(.masthead-home, .mast-search) {
+    display: none;
+  }
+  .masthead:has(
+      .mast-search:focus-within,
+      .pagefind-ui__search-input:not(:placeholder-shown)
+    )
+    .mast-search {
+    /* min-width: 0 because a flex item will not shrink past its content's
+       intrinsic width without it, and Pagefind's input carries padding wide
+       enough to clear its magnifier and Clear button. */
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .masthead:has(
+      .mast-search:focus-within,
+      .pagefind-ui__search-input:not(:placeholder-shown)
+    )
+    .pagefind-ui__form {
+    width: 100%;
+  }
+}
+
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: var(--space-4);
+}
+.photos-grid-item {
+  display: block;
+  line-height: 0;
+}
+.photos-grid-item img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: var(--rule);
+}
+
+.footnotes {
+  color: var(--dim);
+  font: var(--font-small);
+  margin-top: 5em;
+}
+/* .footnotes p must stay after .post-body p — equal specificity, order decides. */
+.footnotes ol {
+  margin: 0;
+  padding-left: 1.5em;
+}
+.footnotes li {
+  margin: 0.5em 0;
+}
+.footnotes li:target {
+  outline: 1px dashed var(--red);
+}
+.footnotes p {
+  margin: 0.25em 0;
+}
+.footnotes hr {
+  margin: 0 0 1em;
+}
+.footnotes .footnote-backref {
+  text-decoration: none;
+}
+
+/* Reply context — a copy of the post being replied to, above our own words.
+
+   A quieter relative of the toot card below: the same raised panel, smaller and
+   dimmer, because it is somebody else's post being cited rather than the thing
+   the reader came for. The card is selected by .h-cite rather than a class of
+   its own, since the microformat is what the element is for and a second name
+   would only be able to drift from it. */
+.reply-context {
+  margin: 0 0 2em;
+}
+.reply-context-label {
+  color: var(--dim);
+  font: var(--font-small);
+  margin: 0 0 0.5em;
+}
+.reply-context .h-cite {
+  background: var(--raised);
+  border: var(--rule);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: var(--space-4);
+}
+.reply-context-author {
+  align-items: center;
+  color: var(--dim);
+  display: flex;
+  font: var(--font-small);
+  gap: 0.5em;
+  text-decoration: none;
+}
+.reply-context-author:hover .p-name {
+  text-decoration: underline;
+}
+.reply-context-author .u-photo {
+  border-radius: 50%;
+  flex: none;
+  height: 24px;
+  object-fit: cover;
+  width: 24px;
+}
+.reply-context-title {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.reply-context-title:hover {
+  text-decoration: underline;
+}
+.reply-context-body {
+  color: var(--dim);
+  font: var(--font-small);
+  margin: 0;
+}
+
+blockquote.toot {
+  background: var(--raised);
+  border: var(--rule);
+  border-radius: var(--radius);
+  color: var(--dim);
+  font: var(--font-small);
+  margin: 2em 0;
+  padding: 2em;
+
+  @media (max-width: 450px) {
+    padding: calc(15vw / 2);
+  }
+}
+.toot-author {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  gap: 0.75em;
+  text-decoration: none;
+}
+.toot-author:hover .toot-name {
+  text-decoration: underline;
+}
+.toot-avatar {
+  border-radius: var(--radius);
+  box-shadow: 0 0 1px #0009;
+  height: clamp(32px, 10cqw, 50px);
+  object-fit: cover;
+  width: clamp(32px, 10cqw, 50px);
+}
+.toot-names {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.toot-name {
+  color: var(--text);
+}
+.toot-handle {
+  color: var(--dim);
+}
+.toot-content {
+  margin-top: 1em;
+}
+.toot-content p {
+  margin: 0.5em 0;
+}
+.toot-content :is(picture, img.custom-emoji) {
+  vertical-align: text-bottom;
+}
+.toot-media {
+  margin-top: 1em;
+}
+.toot-media.is-grid {
+  display: grid;
+  gap: 0.5em;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+}
+.toot-media img {
+  border: var(--rule);
+  border-radius: var(--radius);
+  max-width: 100%;
+}
+.toot-meta {
+  color: var(--dim);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-top: 1em;
+  text-decoration: none;
+}
+.toot-meta:hover {
+  text-decoration: underline;
+}
+
+/* Transparent at rest so the collapsed control reads as an icon. */
+#search .pagefind-ui__search-input {
+  background: transparent;
+  border: solid 1px transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+#search .pagefind-ui__search-input:not(:placeholder-shown) {
+  background: var(--bg);
+  border-color: var(--line);
+  cursor: auto;
+}
+#search .pagefind-ui__search-input:focus,
+#search .pagefind-ui__search-input:focus-visible {
+  cursor: auto;
+  background: var(--bg);
+  border-color: var(--dim);
+  outline: solid 1px var(--dim);
+  outline-offset: 1px;
+}
+
+#search .pagefind-ui__result-excerpt {
+  color: var(--text);
+}
+
+/* Matches render in browser-default yellow otherwise. */
+#search mark {
+  background: color-mix(in srgb, var(--red) 22%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  padding: 0 0.15em;
+}
+
+.post-edit-slot::before {
+  content: "•";
+  padding-right: 0.5em;
+}
+.post-edit {
+  text-decoration: none;
+}
+.post-edit:hover {
+  text-decoration: underline;
+}
+
+html {
+  /* modern-normalize */
+  font-family:
+    system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  line-height: 1.15;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+  scroll-padding-top: 120px;
+  background-color: var(--bg);
+  color: var(--ink);
+  font: 1rem/1.4 var(--font-family-ui);
+  overflow-wrap: break-word;
+  font-optical-sizing: auto;
+}
+
+/* modern-normalize */
+body {
+  /* modern-normalize */
+  margin: 0;
+
+  background: var(--bg);
+  color: var(--text);
+  font: var(--font-body);
+  letter-spacing: var(--body-tracking);
+}
+
+/* .reply-context * joins .toot * for the same reason: both carry a small avatar
+   at an explicit width and height, and the rule below would override both and
+   centre it as though it were an illustration. */
+.post-body img:not(.custom-emoji, .toot *, .reply-context *) {
+  height: auto;
+  margin-inline: auto;
+  max-height: 70vh;
+  max-width: 100%;
+  width: auto;
+}
+
+.post-body > img,
+.post-body > p > img:only-child,
+.post-body figure img:not(.toot *) {
+  display: block;
+}
+
+.post-body img[data-lightbox] {
+  cursor: zoom-in;
+}
+.lightbox {
+  background: transparent;
+  border: 0;
+  height: 100%;
+  max-height: 100%;
+  max-width: 100%;
+  padding: 0;
+  width: 100%;
+}
+.lightbox::backdrop {
+  background: rgb(0 0 0 / 85%);
+}
+.lightbox img {
+  cursor: zoom-out;
+  display: block;
+  inset: 0;
+  margin: auto;
+  max-height: 100%;
+  max-width: 100%;
+  position: absolute;
+}
+
+#search {
+  position: relative;
+}
+#search .pagefind-ui__drawer:not(.pagefind-ui__hidden) {
+  background: var(--bg);
+  border: var(--rule);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 12%);
+  /* left must be released, not left at 0: left + right + width is
+   over-constrained and CSS drops the right offset. */
+  left: auto;
+  right: 0;
+  width: min(34rem, calc(100vw - 2 * var(--sheet-pad)));
+  margin-top: var(--space-2);
+  max-height: min(60vh, 32rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-4);
+  position: absolute;
+  top: 100%;
+  z-index: 20;
+}
+
+#search .search-result-date {
+  color: var(--dim);
+  display: block;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.15em;
+}
+
+.post-details > .post-edit-slot:first-child::before {
+  content: none;
+}
+
+.lightbox-close {
+  align-items: center;
+  background: rgb(0 0 0 / 55%);
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  position: fixed;
+  right: max(0.75rem, env(safe-area-inset-right));
+  top: max(0.75rem, env(safe-area-inset-top));
+  width: 44px;
+}
+.lightbox-close:hover,
+.lightbox-close:focus-visible {
+  background: rgb(0 0 0 / 80%);
+}
+
+.post-body-note {
+  line-height: 1.7;
+}
+
+.post-body-note > :last-child,
+.post-body-note > p:last-of-type {
+  margin-bottom: 0;
+}
+
+.post-body figure {
+  margin: 1.5em 0;
+  text-align: center;
+}
+.post-body figcaption {
+  color: var(--dim);
+  font: var(--font-small);
+  margin-top: 0.6em;
+  text-align: center;
+}
+.post-body figcaption a {
+  color: inherit;
+}
+
+.pagination-when {
+  color: var(--dim);
+  display: block;
+  font: var(--font-small);
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.2em;
+}
+
+.rail {
+  font: 0.8125rem/1.65 var(--font-family-ui);
+  color: var(--dim);
+}
+.rail h2,
+.toc-sidebar > summary,
+.toc-sidebar .toc h2,
+.page-navigation h2 {
+  font: var(--font-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.rail h2,
+.toc-sidebar .toc h2,
+.page-navigation h2 {
+  margin: 0 0 var(--space-2);
+}
+.rail h2,
+.toc-sidebar .toc h2 {
+  opacity: 0.8;
+}
+.rail section + section {
+  margin-top: var(--space-7);
+}
+.rail ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rail li {
+  margin-bottom: var(--space-1);
+}
+.rail a {
+  color: var(--dim);
+  text-decoration: none;
+}
+.rail a:hover {
+  color: var(--ink);
+}
+
+/* One row, like every other section of the rail. */
+.webring {
+  align-items: baseline;
+  display: flex;
+  gap: 0.5em;
+}
+/* Held at text size and drained of colour. The two emoji arrive from the system
+   emoji font as full-colour raster glyphs, which in a rail of one flat grey read
+   as a sticker someone stuck on rather than part of the type. Greyscale and the
+   opacity put them at the weight of the words either side; they come from a font
+   the theme does not control, so this is the only handle on them. */
+.webring-mark {
+  filter: grayscale(1);
+  font-size: 0.9em;
+  opacity: 0.55;
+  white-space: nowrap;
+}
+
+.toc-sidebar {
+  font: 0.8125rem/1.65 var(--font-family-ui);
+  margin-bottom: var(--space-7);
+}
+/* The whole row is the control, so the label sits at one end and the chevron at
+   the other and the target spans the column. 2.75rem, not 2.75em: the label is
+   11px type, so an em-based minimum came out at 30px — well under a thumb. */
+.toc-sidebar > summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  min-height: 2.75rem;
+  padding: var(--space-2) 0;
+}
+.toc-sidebar > summary::-webkit-details-marker {
+  display: none;
+}
+/* Two borders rather than a background image. An SVG in a data URI cannot read
+   currentColor — the one that used to be here had `fill='%23000'` baked into it
+   and drew a black chevron on a near-black page, which is what it looked like.
+   Drawn this way it takes the summary's own colour and can rotate to report the
+   open state, which the static image never did. */
+.toc-sidebar > summary::after {
+  content: "";
+  width: 0.45em;
+  height: 0.45em;
+  border-right: 1.5px solid;
+  border-bottom: 1.5px solid;
+  transform: translateY(-0.15em) rotate(45deg);
+  transition: transform 0.18s ease;
+}
+.toc-sidebar[open] > summary::after {
+  transform: translateY(0.15em) rotate(-135deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .toc-sidebar > summary::after {
+    transition: none;
+  }
+}
+.toc-sidebar > summary:hover {
+  color: var(--ink);
+}
+.toc > nav > ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+  color: var(--dim);
+}
+.toc > nav ul ul {
+  list-style: none;
+  margin: 0.3em 0 0;
+  padding-left: 1em;
+}
+/* No rule down the side of an entry. The colour change on .active already says
+   which heading is being read, and a hairline per line turned a four-item list
+   into a ladder. */
+.toc li {
+  margin: 0.1em 0 var(--space-1);
+}
+.toc a {
+  color: var(--dim);
+  text-decoration: none;
+}
+.toc a:hover {
+  color: var(--ink);
+}
+.toc a.active {
+  color: var(--accent);
+}
+
+/* Hugo opens the list at the start level configured for the site, so a post
+   whose first heading is deeper than that arrives wrapped in link-less <li>s —
+   one rung of indent per level skipped, each naming nothing. Flatten those and
+   the list starts at the level of the post's first heading; real entries below
+   it keep their nesting.
+
+   Must stay below `.toc > nav ul ul` — equal specificity, order decides. */
+.toc li:not(:has(> a)) {
+  margin: 0;
+}
+.toc li:not(:has(> a)) > ul {
+  margin-top: 0;
+  padding-left: 0;
+}
+
+@media (min-width: 60em) {
+  .toc-sidebar > summary {
+    display: none;
+  }
+  /* The summary is hidden at this width, so a disclosure that never got opened
+     would be a list with no way in. The inline script beside the element opens
+     it; this is the fallback for a reader with no JS, overriding the UA rule
+     that hides a closed disclosure's contents. */
+  .toc-sidebar:not([open]) > .toc {
+    content-visibility: visible;
+  }
+}
+/* Narrow: the disclosure has been moved under the byline, in the post column,
+   where it is a band of furniture between the header and the prose rather than
+   an item in a sidebar. Hairlines top and bottom mark it as one — and when it is
+   open the lower one closes the list off, so the entries do not read as the
+   opening of the article. */
+@media (max-width: 59.99em) {
+  .toc-sidebar {
+    border-top: var(--rule);
+    border-bottom: var(--rule);
+    margin-bottom: var(--space-6);
+  }
+  /* The summary already says "Contents"; the heading inside the list says it a
+     second time to a screen reader that has just read the first one. */
+  .toc-sidebar .toc h2 {
+    display: none;
+  }
+  /* .toc carries a 2.5rem bottom margin for the rail, where the gap separates it
+     from Elsewhere. Inside the band that margin is a hole above the lower rule. */
+  .toc-sidebar > .toc {
+    margin-bottom: var(--space-4);
+  }
+}
+
+.comments-section {
+  display: block;
+  /* The rule down the side of the replies says where they start; a second one
+     across the top said it twice. Space alone now, and enough of it to read as
+     a break rather than as the next paragraph. */
+  margin-top: var(--space-8);
+}
+/* Matched by class rather than by tag, so renaming the element never reaches the
+   stylesheet. It carried the section's own rule once, which drew a second line
+   under the heading; that was load-bearing while the replies were a panel and is
+   redundant now they sit on the page. */
+.comments {
+  display: block;
+}
+
+/* The heading stays here rather than being drawn: the rule above the section and
+   the sentence below it are enough to see, and the word would only repeat what
+   the sentence already says. It has to exist for a screen reader, which has
+   neither. That makes the sentence load-bearing — it is the section's only
+   visible label — which is why the platform cards that used to hide it were a
+   problem beyond their styling. */
+.sr-only,
+.comments-header h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.comments-header p {
+  font: var(--font-small-ui);
+  color: var(--dim);
+  margin: 0;
+}
+/* The chips are a bordered row; the sentence under them is bare text. At the
+   gap the rest of the header uses they sat close enough to read as one block. */
+.comments-header p + p {
+  margin-top: var(--space-3);
+}
+/* Per service, separated rather than boxed. */
+.comments-stats {
+  display: flex;
+  flex-wrap: wrap;
+  /* The chips do the separating now, so the gap only has to keep them apart. */
+  column-gap: var(--space-2);
+  row-gap: var(--space-2);
+  font: var(--font-small-ui);
+  color: var(--dim);
+}
+/* One chip per service, so a row of four numbers reads as four totals rather
+   than as a sentence of digits. Whitespace alone left "Threads 45 6 Bluesky 3"
+   ambiguous about which number belonged to which name — the border is what says
+   where one service's tally ends. */
+.comments-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: var(--rule);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-3);
+}
+/* Same pairing as the per-reply counts: mark and number together, then a wider
+   gap to whatever is beside them. */
+.comments-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.comments-metric svg {
+  width: 0.9em;
+  height: 0.9em;
+  fill: currentColor;
+  /* The counts read as data, not as a heart and an arrow — drained to the same
+     grey as the words beside them, as the webring marks are. */
+  opacity: 0.7;
+}
+/* The service's mark reads as part of its name, so it sits at the name's weight
+   rather than the drained one the counts use — it is the label, not the data. */
+.comments-stat-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  text-decoration: none;
+}
+a.comments-stat-name:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.comments-stat-name svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
+.stream-more,
+.page-pagination {
+  margin-left: calc(var(--gutter) + var(--gutter-gap));
+}
+
+.page-header {
+  margin-bottom: var(--entry);
+}
+.page-title {
+  font: 700 1.75rem/1.25 var(--font-family-ui);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+  text-wrap: balance;
+}
+.page-navigation a {
+  font: var(--font-small-ui-tight);
+  color: var(--dim);
+  text-decoration: none;
+}
+.page-navigation a:hover {
+  color: var(--ink);
+}
+.stream-more {
+  margin-top: var(--entry);
+  font: var(--font-small-ui-tight);
+}
+
+.post-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-2);
+}
+.post-footer .post-hashtags {
+  margin: 0;
+  gap: var(--space-1) var(--space-3);
+}
+.post-excerpt:has(+ .post-footer),
+.post-body:has(+ .post-footer) {
+  margin-bottom: 0;
+}
+/* In a listing the row sits under the title instead, qualifying the headline
+   rather than trailing the preview — so it needs air beneath it, not above.
+   The title already carries the gap above. */
+.post-title + .post-footer {
+  margin-top: 0;
+  margin-bottom: var(--space-4);
+}
+.post-stats {
+  font: var(--font-small-ui);
+  color: var(--dim);
+}
+
+/* Separator, not a terminator. .post-hashtags is the only thing that follows,
+   and it renders nothing on a post with no categories — so unguarded, every
+   untagged post ended on a dot with nothing after it. Safe as :last-child here:
+   what follows is absent rather than hidden, so no invisible sibling holds the
+   position. */
+.post-footer .post-stats:not(:last-child)::after {
+  content: "·";
+  margin-left: var(--space-3);
+}
+
+/* Its own line under the excerpt, not the tail of a sentence. Unscoped from
+   .body-home deliberately: post-entry.html is shared by the home, archive and tag
+   listings precisely so they cannot drift, and while this was spliced into a
+   paragraph it inherited prose styling everywhere — standing alone it would
+   otherwise be a bare accent-coloured link on the two listings the old rule did
+   not name. */
+.post-more {
+  color: var(--dim);
+  display: inline-block;
+  font: var(--font-small-ui);
+  margin-top: var(--space-3);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.post-more:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.filmstrip + .post-hashtags {
+  margin-top: var(--space-4);
+}
+
+.filmstrip {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: var(--space-1);
+}
+.filmstrip img {
+  height: 92px;
+  width: auto;
+  max-width: none;
+  flex: none;
+  border-radius: var(--radius-sm);
+  border: var(--rule);
+  object-fit: cover;
+  display: block;
+}
+
+.body-post {
+  & .post {
+    display: block;
+  }
+  & .post-time {
+    margin-bottom: var(--space-2);
+  }
+  & .post-date,
+  & .post-clock {
+    display: inline;
+    margin-top: 0;
+  }
+  & .post-clock::before {
+    content: " · ";
+  }
+
+  & .post,
+  & .page-pagination {
+    max-width: var(--measure);
+  }
+  & .page-pagination {
+    margin-left: 0;
+  }
+
+  & .post > .post-hashtags {
+    margin-top: var(--space-4);
+  }
+
+  & .post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--space-4);
+    row-gap: var(--space-1);
+    margin: 0 0 var(--space-6);
+    font: var(--font-small-ui);
+    color: var(--dim);
+
+    & .post-byline a {
+      color: var(--dim);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--ink);
+        text-decoration: underline;
+      }
+    }
+
+    & .post-hashtags {
+      margin: 0;
+    }
+
+    /* Guarded for the same reason as .post-footer above: the tags after the
+       reading time are absent on an untagged post, and the dot was left
+       terminating the row. */
+    & .post-byline:not(:last-child)::after,
+    & .post-stats:not(:last-child)::after {
+      content: "·";
+      margin-left: var(--space-4);
+    }
+  }
+
+  & .post-title {
+    font: 700 1.75rem/1.25 var(--font-family-ui);
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-2);
+  }
+
+  & .post-body {
+    & h1,
+    & h2 {
+      font: 600 1.3125rem/1.3 var(--font-family-ui);
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      margin: 2em 0 0.6em;
+    }
+
+    & h3,
+    & h4,
+    & h5,
+    & h6 {
+      font: 600 1.0625rem/1.35 var(--font-family-ui);
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin: 1.75em 0 0.5em;
+    }
+
+    & > :first-child {
+      margin-top: 0;
+    }
+  }
+}
+
+@media (max-width: 59.99em) {
+  :root {
+    --sheet-pad: var(--space-6);
+  }
+
+  .sheet {
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--entry);
+  }
+
+  .layout > .aside-col {
+    display: contents;
+  }
+  /* Auto-placed: assigning rows left row 1 reserved, and its gap with it, on
+   pages with no contents list. */
+  .layout > .stream {
+    grid-row: auto;
+    max-width: none;
+  }
+  /* Only reached when the script beside the element did not run: with JS the
+     list has already been moved into the article and is no longer a child of
+     .aside-col. Above the content is the best a stylesheet can do from out here,
+     and it is still the useful place for it. */
+  .layout > .aside-col > .toc-sidebar {
+    order: -1;
+    margin-bottom: 0;
+  }
+
+  .mast-menu:not([hidden]) {
+    display: flex;
+  }
+  .rail-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+    margin-bottom: var(--space-6);
+    border-bottom: var(--rule);
+    font: var(--font-small-ui);
+  }
+
+  /* The rail *is* the panel: a second id="search" would leave Pagefind bound
+   to whichever came first. */
+  .layout > .aside-col > .rail {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    width: min(19rem, 80vw);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-10) var(--space-6) var(--space-6);
+    background: var(--bg);
+    border-left: var(--rule);
+    border-top: 0;
+    /* Asymmetric delay: visible immediately on open so the panel is focusable in
+   the same frame, held through the slide on close. */
+    visibility: hidden;
+    transform: translateX(100%);
+    transition:
+      transform 0.22s ease,
+      visibility 0s linear 0.22s;
+  }
+  .menu-open .layout > .aside-col > .rail {
+    visibility: visible;
+    transform: none;
+    transition:
+      transform 0.22s ease,
+      visibility 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layout > .aside-col > .rail {
+      transition: none;
+    }
+  }
+
+  /* The panel carries these links; the masthead copy would duplicate them. */
+  .mast-nav {
+    display: none;
+  }
+
+  /* Ordered so the tagline is what wraps, not the controls: wordmark, then the
+     search icon and menu button pinned right, with the tagline on its own line
+     beneath them. */
+  .mast-search {
+    order: 1;
+    margin-left: auto;
+  }
+  .mast-menu:not([hidden]) {
+    order: 2;
+    margin-left: 0;
+  }
+  /* Open search takes the header over rather than pushing the other items into
+     new rows — reordering them made the whole masthead move. */
+  .masthead:has(
+      .mast-search:focus-within,
+      .pagefind-ui__search-input:not(:placeholder-shown)
+    )
+    > :not(.mast-search) {
+    display: none;
+  }
+  .masthead:has(
+      .mast-search:focus-within,
+      .pagefind-ui__search-input:not(:placeholder-shown)
+    )
+    .mast-search {
+    order: 0;
+    flex: 1 0 100%;
+    margin-left: 0;
+  }
+  /* Left inline beside the wordmark while it fits; it only takes its own row on
+     the narrow query below. */
+  .masthead .tagline {
+    order: 1;
+  }
+  .mast-search:focus-within .pagefind-ui__form,
+  .mast-search
+    .pagefind-ui__form:has(.pagefind-ui__search-input:not(:placeholder-shown)) {
+    width: 100%;
+  }
+  #search .pagefind-ui__drawer:not(.pagefind-ui__hidden) {
+    inset-inline: 0;
+    width: auto;
+  }
+
+  .post {
+    display: block;
+  }
+  /* Wider than the 8px the two-column layout wants: stacked, the title has the
+     stamp above it and the text right under it, and at 8px the three run
+     together. */
+  .postList .post-title {
+    margin-bottom: var(--space-4);
+  }
+  .post-time {
+    margin-bottom: var(--space-2);
+  }
+  .post-date,
+  .post-clock {
+    display: inline;
+    margin-top: 0;
+  }
+  .post-clock::before {
+    content: " · ";
+  }
+  .stream-more,
+  .page-pagination {
+    margin-left: 0;
+  }
+
+  .masthead {
+    padding-top: var(--space-8);
+  }
+  .mast-nav {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* Below this the wordmark, tagline and both controls stop fitting on one line.
+   The tagline is what drops — the controls stay reachable at the top right.
+   Pulled up by the row gap because the 44px menu button sits well past the
+   wordmark's text, so the gap above reads larger than it measures. */
+@media (max-width: 30em) {
+  .masthead .tagline {
+    order: 5;
+    flex: 1 0 100%;
+    margin-top: calc(var(--space-2) * -1);
+    margin-bottom: var(--space-1);
+    /* On its own row there is nothing beside it to be centred against. */
+    transform: none;
+  }
+}

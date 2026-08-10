@@ -1,0 +1,19 @@
+{{/* The timestamp is the permalink — there is no separate glyph.
+
+     Two lines, date over time, because it sits in a narrow left gutter above
+     60em. Below that breakpoint the gutter collapses and CSS re-joins the two
+     spans onto one line with a separator.
+
+     Shown on every post now, titled or not. Verified safe against the live
+     feed.json: no post carries a T00:00:00 stamp, so titled posts imported
+     date-only will not render a bogus "12:00 AM".
+
+     Microformats live here: .u-url marks the permalink, .dt-published the time. */}}
+<p class="post-time">
+  <a class="u-url" href="{{ .Permalink }}">
+    <time class="dt-published" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+      <span class="post-date">{{ .Date.Format "January 2, 2006" }}</span><span class="post-clock">{{ .Date.Format "3:04 PM" }}</span>
+    </time>
+  </a>
+  {{ partial "edit-link.html" . }}
+</p>

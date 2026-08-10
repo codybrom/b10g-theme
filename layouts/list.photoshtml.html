@@ -1,0 +1,29 @@
+{{/* Micro.blog renders /photos/ as the home page under a custom `photoshtml` output
+     format. Without this template Hugo falls through to layouts/index.html and the
+     photos page renders as the homepage. */}}
+{{ define "bodyClass" }}body-page{{ end }}
+{{ define "main" }}
+<header class="page-header">
+  <h1 class="page-title">Photos</h1>
+</header>
+
+{{ $list := where .Site.RegularPages ".Params.photos" "!=" nil }}
+{{ if $list }}
+  <div class="photos-grid">
+    {{ range $list.ByDate.Reverse }}
+      {{ $p := . }}
+      {{/* Micro.blog stores alt text in a parallel photos_alt array; prefer it. */}}
+      {{ $alt := "" }}
+      {{ with $p.Params.photos_alt }}{{ $alt = index . 0 }}{{ end }}
+      {{ if not $alt }}
+        {{ $alt = printf "Photo from %s" ($p.Date.Format "January 2, 2006") }}
+      {{ end }}
+      <a class="photos-grid-item" href="{{ $p.Permalink }}">
+        <img src="{{ index $p.Params.photos 0 }}" loading="lazy" alt="{{ $alt }}">
+      </a>
+    {{ end }}
+  </div>
+{{ else }}
+  <p class="emptyState">No photos yet.</p>
+{{ end }}
+{{ end }}

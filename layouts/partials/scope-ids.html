@@ -1,0 +1,81 @@
+{{/* Make the ids a post body mints unique to that post.
+
+     Goldmark and the heading render hook both number from the top of their own
+     document, so every post emits id="fn:1" and an id per heading anchor. On a
+     permalink that is fine — one body, no neighbours. Every listing in this theme
+     renders more than one post body on a single page: the home stream, the
+     archive, tag and category pages, and /replies/. post-entry.html shows a short
+     post in full rather than as an excerpt, footnotes and headings included.
+
+     Two such posts on one page therefore ship duplicate ids: invalid HTML, and
+     clicking the second post's footnote marker or heading anchor scrolls the
+     reader to the first post's. That last part is why this stayed invisible for
+     so long — it always landed somewhere.
+
+     The prefix is a hash of the permalink, so it is stable across builds — a
+     bookmarked anchor keeps resolving — and unique per post by construction.
+
+     Applied only in listings. Permalinks have a single body, cannot collide, and
+     keep the plain #fn:1 and #heading-slug anchors anything already links to.
+
+     Takes a dict: `html` (the rendered body) and `page`. Returns a string. */}}
+
+{{ $html := .html }}
+{{ $prefix := hash.XxHash .page.RelPermalink }}
+
+{{/* An excerpt that was cut keeps its footnote markers and loses the notes they
+     point at: Goldmark puts every definition in one block at the end of the
+     document, and both ways this theme shortens a post — Hugo's summary, and the
+     cut at the first heading in post-entry.html — take a prefix, so that block is
+     the first thing to go. What is left is a superscript 1 linking to an anchor
+     that is not on the page.
+
+     Scoping the ids below made that harmless; it did not make it useful. Before
+     it, the marker found some *other* post's note further down the listing and
+     scrolled the reader to the wrong footnote, which is the worse half of this
+     bug.
+
+     So drop the markers when their notes did not survive. An excerpt is already
+     lossy by construction, cut mid-thought; a marker promising a note the page
+     does not carry is worse than no marker. Readers who want the notes have
+     "Continue reading", which is the control that exists for exactly this.
+
+     Present-or-absent is the whole test, and it is exact rather than a heuristic:
+     the definitions are a single trailing block, so a prefix cut either keeps all
+     of them or none. A quickpost, which renders whole, keeps its markers.
+
+     `fnref\d*:` and not `fnref:` — Goldmark numbers *repeat* references to one
+     note as fnref1:, fnref2:, … while the first stays bare fnref:. Matching only
+     the bare form left the second marker of a twice-cited note behind, pointing
+     at a note that had just been cut. */}}
+{{ if not (strings.Contains $html `class="footnotes"`) }}
+  {{ $html = replaceRE `(?s)<sup id="fnref\d*:[^"]*"[^>]*>.*?</sup>` "" $html }}
+{{ end }}
+
+{{/* Footnotes. The regex is anchored on the attribute so it cannot match prose,
+     and matches id and href in one pass because the backref pairs them:
+     id="fn:1" is the note, href="#fn:1" the marker pointing at it, and rewriting
+     one without the other would break the link it exists to make.
+
+     Note `fn(?:ref\d*)?:` and not `fnref?:` — the latter matches fnref: but not
+     fn:, which silently leaves half the pairs unscoped, and neither of them
+     matches the fnref1: form above. */}}
+{{ $html = replaceRE `((?:id|href)="#?)(fn(?:ref\d*)?:)` (printf `${1}%s-${2}` $prefix) $html }}
+
+{{/* Headings, from the same page's own anchor list rather than by matching the
+     shape of the markup. .Fragments.Identifiers is exactly the set of anchors
+     this body mints, so this rewrites the heading's id, the self-link the render
+     hook puts inside it, and any in-body link that happens to point at it — all
+     three, without a regex that has to know what render-heading.html emits.
+
+     Literal replace, not replaceRE: an anchor is urlized but not regex-escaped,
+     and a full quoted attribute is unambiguous enough not to need a pattern.
+
+     An identifier that was cut out of an excerpt simply is not in $html and its
+     replacement is a no-op, so nothing has to know where the cut fell. */}}
+{{ range .page.Fragments.Identifiers }}
+  {{ $html = replace $html (printf `id="%s"` .) (printf `id="%s-%s"` $prefix .) }}
+  {{ $html = replace $html (printf `href="#%s"` .) (printf `href="#%s-%s"` $prefix .) }}
+{{ end }}
+
+{{ return $html }}

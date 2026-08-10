@@ -1,0 +1,56 @@
+{{/* Tables, wrapped so a wide one scrolls inside the column instead of pushing
+     the page sideways. The post body is a bounded measure and a table is the one
+     markdown construct with no natural maximum width — seven columns of prose
+     will overflow it on any phone.
+
+     The wrapper carries the scrolling, not the table, because overflow on a
+     table element does not apply: it is not a block container. Hence the div.
+
+     What the wrapper does NOT carry is tabindex and role="region". Making a
+     scroll container focusable is the fix for content only a horizontal drag can
+     reach, and it is only a fix where the content actually scrolls — on a
+     two-column table that fits, it is a tab stop that goes nowhere and draws the
+     focus ring around nothing, and role="region" adds one more landmark
+     announced "Table region" to the landmark list for every table on the page.
+     Whether a table overflows is a layout fact no template can know, so the
+     inline script in baseof.html applies both attributes to the wrappers that
+     really do scroll, and keeps them right as fonts load and the window resizes.
+
+     Attributes are forwarded onto the table. Hugo's embedded hook does this and
+     a replacement that drops them silently eats the id from `{#pricing}` — an
+     in-post link to it then scrolls nowhere — and the class from `{.wide}` that
+     an override rule was keyed on. Whether markdown attributes are enabled is
+     the site's call, not this hook's; ignoring them is only invisible until
+     someone turns them on.
+
+     Alignment is a class, not an inline style. Two reasons, and neither is
+     taste: inline style beats every rule in b10g.css, which is the trap migrated
+     post bodies already spring here — see "Specificity" in CLAUDE.md — and a
+     template action inside a style attribute makes the editor parse {{ . }} as
+     CSS and mark the file broken. The .align-* rules live with the rest of the
+     table styling in b10g.css. */}}
+<div class="table-wrap">
+  <table
+    {{- range $k, $v := .Attributes }}
+      {{- if $v }} {{ $k | safeHTMLAttr }}="{{ $v }}"{{ end }}
+    {{- end }}>
+    <thead>
+      {{- range .THead }}
+        <tr>
+          {{- range . }}
+            <th{{ with .Alignment }} class="align-{{ . }}"{{ end }}>{{ .Text }}</th>
+          {{- end }}
+        </tr>
+      {{- end }}
+    </thead>
+    <tbody>
+      {{- range .TBody }}
+        <tr>
+          {{- range . }}
+            <td{{ with .Alignment }} class="align-{{ . }}"{{ end }}>{{ .Text }}</td>
+          {{- end }}
+        </tr>
+      {{- end }}
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,8 @@
+{{/* Self-linking headings, matching the markup b10g.xyz produces:
+     <h2 id="slug" tabindex="-1"><a href="#slug" class="header-anchor">Text</a></h2>
+
+     .Text has been template.HTML since Hugo 0.141, so the safeHTML it used to
+     carry was a no-op — emphasis inside a heading survives either way. Dropped
+     rather than kept for luck, because a safeHTML that is not needed reads as
+     evidence that the value is untrusted. */}}
+<h{{ .Level }} id="{{ .Anchor }}" tabindex="-1"><a href="#{{ .Anchor }}" class="header-anchor">{{ .Text }}</a></h{{ .Level }}>

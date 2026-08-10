@@ -1,0 +1,37 @@
+{{ define "bodyClass" }}body-post{{ end }}
+{{ define "main" }}
+<article class="post h-entry">
+  <header class="post-header">
+    {{ with .Title }}<h1 class="post-title p-name">{{ . | htmlUnescape }}</h1>{{ end }}
+    <div class="post-details">
+      <p>
+        <a class="u-url" href="{{ .Permalink }}">
+          <time class="dt-published" datetime="{{ .Date.Format "2006-01-02 15:04:05" }}">
+            {{ partial "human-date.html" .Date }}
+          </time>
+        </a>
+      </p>
+    </div>
+  </header>
+
+  {{/* Micro.blog supplies who was replied to, but never what they said — there
+       is no title or excerpt in the front matter it writes — so this context is
+       an attributed link rather than a quotation. Same h-cite markup as the
+       in-reply-to shortcode either way, which is what a receiving site reads to
+       thread this as a comment. */}}
+  {{ with .Params.reply_to_url }}
+    {{ $username := $.Params.reply_to_username }}
+    {{ $isMicroblog := eq $.Params.reply_to_hostname "micro.blog" }}
+    {{ partial "reply-context.html" (dict
+        "url" .
+        "author" (cond $isMicroblog (printf "@%s" $username) $.Params.reply_to_hostname)
+        "author_url" (cond $isMicroblog (printf "https://micro.blog/%s" $username) "")
+        "photo" $.Params.reply_to_avatar)
+    }}
+  {{ end }}
+
+  <div class="post-body body e-content">
+    {{ .Content }}
+  </div>
+</article>
+{{ end }}

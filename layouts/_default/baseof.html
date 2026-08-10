@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="{{ .Site.Language.Lang | default "en" }}" data-theme="dark"{{ with .Site.Params.social_api_base }} data-social-api-base="{{ . }}"{{ end }} data-social-cache="{{ .Site.Params.comments_cache | default 60 }}">
+{{ partial "head.html" . }}
+<body>
+  {{/* Everything lives inside the sheet: a bounded container with hairline edges,
+       the masthead at its top, and a two-column grid beneath.
+
+       The grid takes THREE children, not two. The contents list is placed
+       independently of the rail so it can sit in the rail column on wide screens
+       and, on narrow ones, be moved into the article under the byline — where
+       navigation is actually useful. rail.html emits it only when the page has
+       headings, and carries the script that moves it. */}}
+  <div class="sheet">
+    {{ partial "masthead.html" . }}
+
+    <div class="layout">
+      <main class="stream {{ block "bodyClass" . }}body-page{{ end }}">
+        {{ block "main" . }}{{ end }}
+      </main>
+
+      {{ partial "rail.html" . }}
+    </div>
+  </div>
+
+  {{/* Outside .sheet so it can cover it. */}}
+  <div class="menu-backdrop" hidden></div>
+
+  {{/* Renders nothing anywhere else, and nothing at all until the profile
+       settings are filled in. */}}
+  {{ if .IsHome }}{{ partial "h-card.html" . }}{{ end }}
+
+  {{ partial "footer.html" . }}
+
+  {{/* Every page kind can carry content images — permalinks, the homepage
+       stream, the archive, and the filmstrip of thumbs on a quickpost — so the
+       lightbox is loaded here rather than on the permalink alone. It exits
+       immediately when nothing matches. */}}
+  <script type="module" src="{{ partial "asset.html" "js/menu.js" }}"></script>
+  <script type="module" src="{{ partial "asset.html" "js/lightbox.js" }}"></script>
+
+  {{/* A scroll container is worth a tab stop only when it actually scrolls, and
+       whether a table overflows its column is a layout fact — it depends on the
+       viewport, the loaded font and the content, none of which render-table.html
+       can see. So the wrapper ships plain and the attributes are applied here, to
+       the wrappers that really do overflow, and withdrawn when they stop. A
+       ResizeObserver rather than a one-shot pass because the answer changes:
+       Inter arrives after first paint and re-lays every table, and a window can
+       be resized across the threshold in either direction. Both boxes are
+       observed, and the table is the one that matters — the wrapper is as wide as
+       the column whatever happens inside it, so a table that grows past it on the
+       webfont swap resizes only itself and a wrapper-only observer would sleep
+       through exactly the case this exists for.
+
+       Inline and un-deferred rather than a module of its own — it is a dozen
+       lines, and a fourth script tag on every page to carry them is the more
+       expensive half of the trade. */}}
+  <script>
+    (() => {
+      const wraps = document.querySelectorAll(".table-wrap");
+      if (!wraps.length) return;
+      const mark = (el) => {
+        if (el.scrollWidth > el.clientWidth) {
+          el.setAttribute("tabindex", "0");
+          el.setAttribute("role", "region");
+          el.setAttribute("aria-label", "Table");
+        } else {
+          el.removeAttribute("tabindex");
+          el.removeAttribute("role");
+          el.removeAttribute("aria-label");
+        }
+      };
+      const ro = new ResizeObserver((entries) =>
+        entries.forEach((e) => mark(e.target.closest(".table-wrap")))
+      );
+      wraps.forEach((el) => {
+        mark(el);
+        ro.observe(el);
+        if (el.firstElementChild) ro.observe(el.firstElementChild);
+      });
+    })();
+  </script>
+
+  {{/* Renders nothing unless the author has opted in on this browser with ?edit=1 */}}
+  {{ if .Site.Params.edit_links | default true }}
+    <script type="module" src="{{ partial "asset.html" "js/edit-link.js" }}"></script>
+  {{ end }}
+</body>
+</html>

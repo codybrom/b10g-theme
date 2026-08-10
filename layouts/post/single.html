@@ -1,0 +1,151 @@
+{{ define "bodyClass" }}body-post{{ end }}
+{{ define "main" }}
+<article class="post h-entry" data-pagefind-body data-title="{{ .Title }}" data-pagefind-index-attrs="data-title">
+  {{/* Timestamp first whether or not there is a title, so a note and an article
+       open the same way. The contents list is not rendered here even though a
+       narrow viewport shows it inside this article, under .post-meta — rail.html
+       emits it once and its inline script moves it. Rendering a second copy here
+       for the narrow case would put two lists in the DOM, and #TableOfContents
+       twice with them. */}}
+  {{ partial "post-time.html" . }}
+
+  {{ if .Title }}
+    <h1 class="post-title p-name">{{ .Title | htmlUnescape }}</h1>
+
+    {{/* Byline and hashtags sit under the title, not at the foot of the piece.
+         On a long read the tags say what it is about, which is worth knowing
+         before you commit to it rather than after. Notes keep theirs trailing
+         the text — see below. */}}
+    <div class="post-meta">
+      {{ partial "post-byline.html" . }}
+      <span class="post-stats">{{ .ReadingTime }} min read</span>
+      {{ partial "post-hashtags.html" . }}
+    </div>
+  {{ end }}
+
+  {{/* Mark where the listing's excerpt ran out, so "Continue reading" resumes the
+       piece rather than restarting it. The <!--more--> tag and Hugo's own summary
+       both cut between blocks and leave nothing to aim at; the boundary is the end
+       of .Summary, which .Content opens with. Guarded on that actually holding —
+       post-entry.html only links to #more under the same test, so neither side can
+       point at an anchor the other did not write.
+
+       An empty div between two blocks collapses to nothing. It is focusable so a
+       keyboard or screen reader carries on from the same place the eye does. */}}
+  {{ $content := .Content }}
+  {{ $summary := trim .Summary " \n\r\t" }}
+  {{ $trimmed := trim $content " \n\r\t" }}
+  {{ $anchored := and .Truncated (hasPrefix $trimmed $summary) }}
+  {{ if $anchored }}
+    {{ $content = printf `%s<div id="more" tabindex="-1"></div>%s`
+         $summary (strings.TrimPrefix $summary $trimmed) }}
+  {{ end }}
+
+  <div class="post-body body e-content{{ if not .Title }} post-body-note{{ end }}">
+    {{ $content | safeHTML }}
+  </div>
+
+  {{ if $anchored }}
+    {{/* Browsers scroll a fragment target only when it is not already on screen,
+         and this one has no height of its own — so a boundary sitting low in the
+         first screenful got no jump at all, leaving the reader to find their place
+         again. Aligning it explicitly makes the arrival the same wherever the cut
+         fell.
+
+         Inline and immediately after the body, so it runs during parsing, before
+         the first paint, rather than yanking a page the reader is already looking
+         at. Everything above the fragment is parsed by this point, which is what
+         the scroll is measured against.
+
+         instant, explicitly: html carries scroll-behavior: smooth for in-page
+         links, and inherited here it animated nothing at all — and even working,
+         a 700px glide is not what arriving at a page should look like. */}}
+    <script>
+      if (location.hash === "#more")
+        document.getElementById("more").scrollIntoView({ behavior: "instant" });
+    </script>
+  {{ end }}
+
+  {{/* A note's tags trail its text: there is no title for them to sit under. */}}
+  {{ if not .Title }}{{ partial "post-hashtags.html" . }}{{ end }}
+
+  {{ partial "comments.html" . }}
+
+  {{/* Two sources feed the replies section. The shortcode declares where a post was
+       syndicated off-site; Micro.blog already knows every post here, so its own
+       conversation needs nothing but the permalink and applies to all posts. */}}
+  {{ $declared := strings.Contains .Content "replies-data" }}
+  {{ $microblog := .Site.Params.microblog_replies | default true }}
+  {{ if or $declared $microblog }}
+    <div class="replies-mount" hidden aria-hidden="true"
+      {{- if $microblog }} data-post-url="{{ .Permalink }}"{{ end }}></div>
+    <script type="module" src="{{ partial "asset.html" "js/comments.js" }}"></script>
+  {{ end }}
+
+  {{/* A module, so it is deferred and runs once the article is parsed — toc.js
+       resolves each entry against a heading further down the page. lightbox.js
+       moved to baseof.html: listings carry images too. */}}
+  {{/* Same test as rail.html, which decides whether there is a contents list for
+       this script to wire up. Both call has-toc.html, so they cannot disagree —
+       and neither asks .Fragments, which is true for headings the contents list
+       leaves out and had this script running against an empty list. */}}
+  {{ if partial "has-toc.html" . }}
+    <script type="module" src="{{ partial "asset.html" "js/toc.js" }}"></script>
+  {{ end }}
+
+  {{/* Micro.blog sends a reader back here with ?token=&username= once they have
+       signed in to reply, and conversation.js turns that into a working form.
+       Signed out it renders a disabled textarea under a sign-in prompt — an empty
+       box above a Replies section that already lists them — so it is loaded only
+       in the signed-in case; the Reply control on the card covers the other one.
+
+       Written during parse rather than appended later: conversation.js builds the
+       form with document.write, which would blank the page if it ran after load.
+       The flag is set first because the same script clears the query string as
+       soon as it runs, taking the evidence with it. */}}
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      if (!params.get("token") || !params.get("username")) return;
+      document.documentElement.dataset.replying = "";
+      document.write(
+        '<scr' + 'ipt src="https://micro.blog/conversation.js?url={{ .Permalink }}"><\/scr' + 'ipt>'
+      );
+    })();
+  </script>
+</article>
+
+{{/* Order across every post, not .PrevInSection: Micro.blog writes content to
+     /YYYY/MM/DD/, so each year is its own Hugo section and section-scoped
+     navigation silently dead-ends at every year boundary. Sorted ascending, so
+     Prev is the older post and Next the newer one. */}}
+{{ $posts := (where .Site.RegularPages "Type" "post").ByDate }}
+{{/* Counter-intuitive but verified: on a date-ascending collection Hugo's .Prev
+     returns the NEWER page and .Next the OLDER one. Named here by what they are. */}}
+{{ $prev := $posts.Next . }}
+{{ $next := $posts.Prev . }}
+{{ if or $prev $next }}
+<nav class="page-pagination pagination">
+  <ul>
+    {{ with $prev }}
+      <li class="pagination-prev">
+        <a href="{{ .Permalink }}" rel="prev">
+          <span>← Older post</span>
+          <strong>{{ partial "post-label.html" (dict "page" . "length" 56) }}</strong>
+          <span class="pagination-when">{{ .Date.Format "Jan 2, 2006" }}</span>
+        </a>
+      </li>
+    {{ end }}
+    {{ with $next }}
+      <li class="pagination-next">
+        <a href="{{ .Permalink }}" rel="next">
+          <span>Newer post →</span>
+          <strong>{{ partial "post-label.html" (dict "page" . "length" 56) }}</strong>
+          <span class="pagination-when">{{ .Date.Format "Jan 2, 2006" }}</span>
+        </a>
+      </li>
+    {{ end }}
+  </ul>
+</nav>
+{{ end }}
+{{ end }}

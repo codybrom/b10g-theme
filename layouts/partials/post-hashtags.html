@@ -1,0 +1,22 @@
+{{/* Categories for an untitled note, set after the text as hashtags rather than
+     as badges above it. A quickpost is often shorter than its own metadata, so
+     the badges competed with the words; trailing and dimmed, they read as the
+     aside they are. Titled posts keep the badge row in post-details.html.
+
+     Slugified for display as well as for the href — most categories are one word
+     and read as written, but "vision pro" would break the hashtag it is trying to
+     look like.
+
+     p-category rides on the same anchors, which is all an h-entry needs to carry
+     its tags. The hash is deliberately outside the .value span: a p- property
+     takes the element's whole text, which would make every tag on the site read
+     as "#swift" rather than "swift". The value class pattern is what says which
+     part of the visible text is the data — parsers check it before falling back
+     to text content. */}}
+{{ with .Params.categories }}
+  <p class="post-hashtags">
+    {{ range . }}
+      <a class="hashtag p-category" href="{{ (printf "/categories/%s/" (. | urlize)) | relURL }}">#<span class="value">{{ . | urlize }}</span></a>
+    {{ end }}
+  </p>
+{{ end }}

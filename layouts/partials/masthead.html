@@ -1,0 +1,47 @@
+{{/* The masthead sits inside the sheet, with a rule beneath it. Replaces the old
+     full-viewport navbar. The tagline is an identifier here, not a headline — the
+     home page no longer carries a display h1. */}}
+<header class="masthead">
+  <a href="{{ "/" | relURL }}" class="masthead-home">
+    {{ with .Site.Params.logo }}{{ . | safeHTML }}{{ else }}{{ partial "mark.html" . }}{{ end }}
+    <span class="wordmark">{{ .Site.Title }}</span>
+  </a>
+
+  {{ with .Site.Params.tagline | default "thoughts on product, tech and design" }}
+    <span class="tagline">{{ . }}</span>
+  {{ end }}
+
+  {{/* Opens the rail as an off-canvas panel below the breakpoint. Ships hidden;
+       menu.js unhides it, so without JS the rail stays in the page. */}}
+  <button class="mast-menu" type="button" aria-controls="rail" aria-expanded="false" hidden>
+    <span class="mast-menu-bars" aria-hidden="true"></span>
+    <span class="sr-only">Menu</span>
+  </button>
+
+  <nav class="mast-nav">
+    {{/* Pages promoted to the nav by Micro.blog (About, Archive, …).
+
+         .IsMenuCurrent alone is not enough: it only matches menu entries attached
+         to a page via front matter, and Micro.blog defines these in config with a
+         bare URL, so it returns false on the very page the entry points at. That
+         left aria-current never firing — and since the accent's only job is to
+         mark the current page, the accent never appeared at all. Compare the
+         resolved URL as well. */}}
+    {{ range .Site.Menus.main }}
+      {{ $url := .URL | relLangURL }}
+      {{ $current := or ($.IsMenuCurrent "main" .) ($.HasMenuCurrent "main" .) (eq $.RelPermalink $url) }}
+      <a href="{{ $url }}"{{ if $current }} aria-current="page"{{ end }}>{{ .Name }}</a>
+    {{ end }}
+
+    {{/* Social profiles are declared via rel="me" in head.html — what Mastodon and
+         IndieAuth actually read — and listed in the rail. Use `menu_links` to put
+         anything else up here; each entry needs `title` and `url`. */}}
+    {{ range .Site.Params.menu_links }}
+      <a href="{{ .url }}">{{ .title }}</a>
+    {{ end }}
+  </nav>
+
+  {{/* Up here, not in the 160px rail: Pagefind renders results in the same
+       container as its input, so there was nowhere for them to go. */}}
+  <div class="mast-search">{{ partial "search.html" . }}</div>
+</header>

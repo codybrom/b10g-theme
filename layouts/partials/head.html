@@ -1,0 +1,146 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {{/* A note has no title, so the tab used to read as the site name alone and
+       every open note looked identical. Its opening words name it instead, kept
+       short enough to survive a tab strip. */}}
+  <title>
+    {{- if .IsHome }}{{ .Site.Title }}
+    {{- else }}{{ with partial "post-label.html" (dict "page" . "length" 60) }}{{ . }} - {{ end }}{{ .Site.Title }}{{ end -}}
+  </title>
+
+  {{/* One color mode. data-theme is pinned to dark on <html> in baseof.html,
+       so there is no pre-paint script and no flash to avoid. */}}
+  <meta name="supported-color-schemes" content="dark">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#13171e">
+  <meta content="{{ .Site.Params.author_name | default "Cody Bromley" }}" name="author">
+
+
+  {{/* Inter is self-hosted — see the @font-face block at the top of b10g.css.
+
+       It used to come from rsms.me: a render-blocking third-party request, whose
+       roman weighs 352KB because it carries every script. Before that, this file
+       also loaded Inter from Google Fonts, which was never used at all — the
+       rsms @font-face declared InterVariable, which won the stack, and
+       document.fonts reported Google's copy as unloaded.
+
+       Now: Google's per-subset builds of the same OFL font, served from our own
+       origin. 73KB for latin roman; the latin-ext files only download if an
+       accented character actually appears.
+
+       The roman is preloaded because every page needs it and it would otherwise
+       be discovered only after the stylesheet parses. The italic is not — plenty
+       of pages have no italic text, and unicode-range plus font-display: swap
+       handle it when they do. */}}
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{{ "assets/fonts/inter-latin-normal.woff2" | relURL }}">
+
+  {{/* The wordmark face, 3KB, first thing on every page. Preloaded for the same
+       reason as the roman above — discovered in the stylesheet, it would arrive
+       after the masthead had already painted in the fallback and the name would
+       visibly redraw. */}}
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="{{ "assets/fonts/chikarego2.woff2" | relURL }}">
+
+  {{/* Must come BEFORE b10g.css: the theme's `.search .pagefind-ui__*` rules only
+       win if they are loaded after Pagefind's own stylesheet. b10g.xyz ordered them
+       this way too. Loaded on every page rather than conditionally, because
+       .OutputFormat is not available on all page kinds. */}}
+  {{ if ne .Site.Params.search false }}
+    <link rel="stylesheet" href="/pagefind/pagefind-ui.css">
+  {{ end }}
+  {{/* Minified and content-hashed when Hugo Pipes can see it; the plain static
+       URL when it cannot. asset.html decides, and says why. */}}
+  <link href="{{ partial "asset.html" "css/b10g.css" }}" rel="stylesheet">
+
+  {{/* Micro.blog serves RSS 2.0 at /feed.xml — not Atom, as the Lume site did. */}}
+  <link rel="alternate" href="/feed.xml" type="application/rss+xml" title="{{ .Site.Title }}">
+  <link rel="alternate" href="/feed.json" type="application/json" title="{{ .Site.Title }}">
+  <link rel="canonical" href="{{ .Permalink }}">
+
+  {{/* rel=me verification, as b10g.xyz emitted via extra_head — taken from the
+       Elsewhere links, which the rail already marks up this way and the h-card
+       already claims as u-url. One list, declared once.
+
+       It used to be its own list, defaulting to three URLs hardcoded here. Two
+       things were wrong with that. `rel_me` has no plug-in field, so on
+       Micro.blog it can never be set and the default is all anyone ever gets —
+       every other site installing this theme was claiming b10g.xyz's identities
+       as its own. And a second list drifts: this one still said threads.net
+       months after Elsewhere had moved to threads.com, which is one identity
+       spelled two ways and exactly what rel=me must not do.
+
+       Still overridable, for a profile you want verified without listing it in
+       the rail. Micro.blog injects a rel=me to its own profile as well; naming
+       it in Elsewhere too is harmless, since rel=me is a set. */}}
+  {{ $relMe := .Site.Params.rel_me }}
+  {{ if not $relMe }}
+    {{ $relMe = slice }}
+    {{ range partial "elsewhere-links.html" . }}
+      {{ $relMe = $relMe | append .url }}
+    {{ end }}
+  {{ end }}
+  {{ range $relMe }}
+    <link rel="me" href="{{ . }}">
+  {{ end }}
+
+  {{ partial "social-meta.html" . }}
+
+  {{ partial "microblog_head.html" . }}
+
+  {{/* Micro.blog injects its own <link rel="shortcut icon"> above, pointing at the
+       favicon uploaded to the account — and falling back to the account's avatar
+       when none is set, which is a photo of a person rendered at 16px.
+
+       Declared after it so this one wins when set; left unset, that default
+       stands and nothing here renders. Upload the image under Uploads and paste
+       its URL into the plug-in setting.
+
+       Worth knowing before setting it: every icon declared here is a candidate,
+       and browsers do not agree on which candidate wins — not document order,
+       not the last one, not always the best size. Three different images
+       declared is three different favicons in the wild, and the stale one gets
+       cached for a very long time. If this is set, it should be the same picture
+       as the icons below. */}}
+  {{ with .Site.Params.favicon }}
+    <link rel="icon" href="{{ . }}">
+  {{ end }}
+
+  {{/* Declared after Micro.blog's injected icon so these win when no favicon
+       param is set. The SVG is preferred and carries its own
+       prefers-color-scheme switch — currentColor cannot resolve in a favicon
+       context, so favicon.svg has an explicit fill where mark-square.svg keeps
+       currentColor for inlining.
+
+       Sizes are integer multiples of the grid — 19px now, the 17px artwork plus a
+       pixel of ground on each side so the binoculars are not flush to the edge —
+       so 38 = 2x and 76 = 4x. The conventional 16 and 32 land between cells and
+       fringe the edges gray.
+
+       They carry the site's own background rather than transparency. A near-white
+       mark on nothing disappears into a light browser chrome, and a favicon has
+       no idea what it will be drawn against. */}}
+  {{/* Declared as well as served at the root: a browser asks for /favicon.ico on
+       its own whatever the markup says, and so do bookmarks, feed readers and
+       link unfurlers. Without one they get a 404 and fall back to whatever they
+       cached, which is exactly how an old icon outlives its replacement. */}}
+  <link rel="icon" href="{{ "favicon.ico" | relURL }}" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="{{ "assets/img/favicon.svg" | relURL }}">
+  <link rel="icon" type="image/png" sizes="76x76" href="{{ "assets/img/favicon-76.png" | relURL }}">
+  <link rel="icon" type="image/png" sizes="38x38" href="{{ "assets/img/favicon-38.png" | relURL }}">
+  <link rel="apple-touch-icon" href="{{ "assets/img/apple-touch-icon.png" | relURL }}">
+
+  {{/* Read when the site is added to a dock or a home screen — Safari 17 and
+       iOS 16.4 onward — for the name and icon it keeps. No bearing on the favicon
+       in a tab; those are the links above.
+
+       Declared only when the format is actually enabled, and pointed at its own
+       permalink. Hugo ignores `outputs` in a *theme's* config, so on a plain Hugo
+       site this file is never generated even though config.json asks for it —
+       Micro.blog is the exception, because it applies a theme's config.json over
+       the site's. Hardcoding the link would 404 everywhere else. */}}
+  {{ with .Site.Home.OutputFormats.Get "manifest" }}
+    <link rel="manifest" href="{{ .Permalink }}">
+  {{ end }}
+</head>

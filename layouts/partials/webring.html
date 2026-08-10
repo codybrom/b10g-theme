@@ -1,0 +1,40 @@
+{{/* An IndieWeb Webring — https://xn--sr8hvo.ws/
+
+     Membership is checked by a crawler that fetches the URL you registered (the
+     home page), parses it with a plain HTML parser and looks for anchors whose
+     path is exactly `/next` and `/previous` on the ring's host. Both must be
+     present or the site is marked inactive. A link to `/` is allowed and
+     ignored; any OTHER path on that host is reported as an unknown link, so do
+     not add `/directory` or `/random` here.
+
+     The emoji-path form — `/🕸💍/next` — still redirects, but the checker now
+     flags it as an old-style link. Use the bare paths.
+
+     The ring resolves your neighbours from the `Referer` header, matching the
+     registered URL exactly. Two consequences:
+
+     - Never put `noreferrer` in `rel` on these three links. It sends the reader
+       to a random member instead of the neighbour.
+     - Do not widen the referrer policy either. The browser default,
+       strict-origin-when-cross-origin, sends the bare origin — `https://b10g.xyz/`,
+       which is what is registered — from every page on the site. A policy that
+       sends the full URL would only match from the home page.
+
+     Off unless the plug-in setting is ticked: the links are only honest on a
+     site that has actually joined. */}}
+{{ if .Site.Params.webring }}
+  {{/* Arrows either side of the label, as the ring's own snippet has it. What
+       does not fit a 160px rail is the ring's full name beside them — the label
+       alone fills the line and the mark drops onto the next one by itself. So
+       the visible word is "Webring" and "IndieWeb" is carried for screen
+       readers, which keeps the accessible name whole and the line to one row,
+       the way every other section of the rail is one row. */}}
+  <section class="webring">
+    <a href="https://xn--sr8hvo.ws/previous"
+       aria-label="Previous site in the IndieWeb Webring"><span aria-hidden="true">&larr;</span></a>
+    <a class="webring-hub" href="https://xn--sr8hvo.ws/"><span class="sr-only">IndieWeb Webring</span>
+      <span class="webring-mark" aria-hidden="true">&#x1F578;&#x1F48D;</span></a>
+    <a href="https://xn--sr8hvo.ws/next"
+       aria-label="Next site in the IndieWeb Webring"><span aria-hidden="true">&rarr;</span></a>
+  </section>
+{{ end }}

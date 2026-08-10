@@ -1,0 +1,27 @@
+{{/* Parses the `elsewhere` setting into a slice of dicts with `title` and `url`.
+
+     Accepts an array of tables from a local hugo.toml, or the flat string the
+     hosted plug-in form gives us. That form renders a single-line <input> —
+     Micro.blog has no textarea field type — so entries separate on a comma as
+     well as a newline.
+
+     Its own partial because two things need the list and neither owns it: the
+     rail paints it, and the h-card claims the same URLs as u-url. */}}
+{{ $links := slice }}
+{{ with .Site.Params.elsewhere }}
+  {{ if reflect.IsSlice . }}
+    {{ $links = . }}
+  {{ else }}
+    {{ range split (replace . "," "\n") "\n" }}
+      {{ $parts := split (trim . " \r\t") "|" }}
+      {{ if eq (len $parts) 2 }}
+        {{ $title := trim (index $parts 0) " " }}
+        {{ $url := trim (index $parts 1) " " }}
+        {{ if and $title $url }}
+          {{ $links = $links | append (dict "title" $title "url" $url) }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ return $links }}

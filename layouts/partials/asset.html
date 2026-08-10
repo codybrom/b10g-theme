@@ -1,0 +1,60 @@
+{{/* Resolve a theme asset to the URL the page should request.
+
+     Two paths, and which one runs is decided by whether Hugo Pipes can see the
+     file rather than by configuration:
+
+       assets/ visible  → minified, content-hashed: /assets/css/b10g.<sha256>.css
+       assets/ absent   → the plain static URL with ?theme_seconds, as before
+
+     The files themselves live in static/assets/ and are published there either
+     way. config.json mounts that directory a second time as `assets` so
+     resources.Get can reach it; nothing is duplicated, and if the mount is ever
+     dropped — a host that rewrites config.json, an importer that skips it — this
+     partial quietly returns the static URL and the site keeps working. That
+     fallback is the reason for `with`/`else` rather than a config flag: a flag
+     can disagree with reality, this cannot.
+
+     Content hashing is the point. theme_seconds does not reliably change when a
+     plug-in is re-cloned, so browsers keep running code that was replaced hours
+     ago — see "Deployed code that provably never runs" in NOTES.md. A hash of
+     the bytes cannot be stale by construction: new bytes are a new URL.
+
+     resources.Copy back into assets/ is load-bearing, not tidiness. A pipeline
+     resource publishes at its own path — css/b10g.css becomes /css/… — and
+     b10g.css reaches its nine @font-face files as url("../fonts/…"). Moved up a
+     directory the stylesheet still parses, still applies, and asks for /fonts/,
+     which nothing publishes: every self-hosted face 404s and the page silently
+     falls back to system fonts, wordmark included. Publishing under assets/ keeps
+     the stylesheet in the directory its own relative URLs were written against,
+     and keeps it beside the two <link rel=preload> font tags in head.html, which
+     name /assets/fonts/ directly. Anything with a relative URL inside it has this
+     constraint; the JS has none today and is copied along for the same reason
+     tomorrow's might.
+
+     Takes the path relative to the assets root ("css/b10g.css"). Returns a
+     string. No page argument: the only thing outside the path this needs is a
+     site param, and `site` is a global — a dict per call site bought nothing and
+     forced a `.Page` special case in every shortcode.
+
+     js.Build targets esnext deliberately. Nothing here needs downlevelling for
+     the browsers this theme supports, and comments.js uses private class fields
+     — a lower target rewrites them into WeakMap plumbing for no gain. */}}
+
+{{ $path := . }}
+{{ $url := "" }}
+
+{{ with resources.Get $path }}
+  {{ $r := resources.Copy (printf "assets/%s" $path) . }}
+  {{ if hasSuffix $path ".css" }}
+    {{ $r = $r | minify | fingerprint "sha256" }}
+  {{ else if hasSuffix $path ".js" }}
+    {{ $r = $r | js.Build (dict "minify" true "target" "esnext" "format" "esm") | fingerprint "sha256" }}
+  {{ else }}
+    {{ $r = $r | fingerprint "sha256" }}
+  {{ end }}
+  {{ $url = $r.RelPermalink }}
+{{ else }}
+  {{ $url = printf "%s?%v" (printf "assets/%s" $path | relURL) site.Params.theme_seconds }}
+{{ end }}
+
+{{ return $url }}

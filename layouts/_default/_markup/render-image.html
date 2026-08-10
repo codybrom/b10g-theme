@@ -1,0 +1,22 @@
+{{- /* Markdown images become figures, so a caption is a caption and how an image
+       sits on the page is decided in the stylesheet rather than in a style
+       attribute repeated on every post.
+
+       Hugo only calls this for markdown image syntax — never for raw HTML — which
+       is why the migrated posts had to be converted to use it. Micro.blog's own
+       uploader still inserts an <img> tag, so bare images stay styled by the same
+       rules whether or not they arrive through here.
+
+       The caption comes from the markdown title, run through markdownify so a
+       photo credit can carry a link. No title attribute is emitted: it would
+       surface the raw markdown as a tooltip, and the caption already says it.
+
+       .PlainText for the alt, not .Text. Since Hugo 0.141 .Text is rendered
+       HTML, so alt text written with emphasis arrives as "an <em>emphatic</em>
+       image". Go's attribute escaper happens to strip the tags, which is why
+       this looked right — but that is the escaper repairing the wrong input.
+       .PlainText is the value an attribute actually wants. */ -}}
+<figure>
+  <img src="{{ .Destination | safeURL }}" alt="{{ .PlainText }}" loading="lazy" decoding="async">
+  {{- with .Title }}<figcaption>{{ . | markdownify }}</figcaption>{{ end -}}
+</figure>

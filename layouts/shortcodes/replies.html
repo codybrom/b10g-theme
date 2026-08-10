@@ -1,0 +1,50 @@
+{{- /* Declare where a post was syndicated so its replies can be pulled in.
+{{< replies threads="URL" mastodon="URL" bluesky="URL" >}}
+Comma-separate to give more than one URL per platform.
+Each platform is independent: name only the ones you are correcting, and the
+rest keep whatever Micro.blog recorded. Pass "none" to switch one off entirely,
+which is how a copy that has since been deleted stops being offered.
+threads_id takes the Threads media IDs for those URLs, in the same order. It is
+optional but worth setting: without it the API proxy has to find the post by
+paging recent posts, which reaches only a few hundred and so stops resolving a
+URL once enough newer posts exist.
+Renders nothing here: it emits a hidden data element, and comments.js
+builds the replies section at the end of the post. Attributes are assembled
+into a string rather than written inline so an HTML formatter cannot reflow
+template actions inside the tag. */ -}}
+{{- $t := trim (or (.Get "threads") "") " " -}}
+{{- $ti := trim (or (.Get "threads_id") "") " " -}}
+{{- $m := trim (or (.Get "mastodon") "") " " -}}
+{{- $b := trim (or (.Get "bluesky") "") " " -}}
+{{- /* "none" is carried through as a value rather than dropped here: the script
+needs to tell "the author switched this off" from "the author said nothing about
+it", and only the first should override what Micro.blog recorded. */ -}}
+{{- $off := slice "none" "off" "false" -}}
+{{- $a := "" -}}
+{{- with $t -}}{{- $a = printf "%s data-threads=%q" $a . -}}{{- end -}}
+{{- with $ti -}}{{- $a = printf "%s data-threads-id=%q" $a . -}}{{- end -}}
+{{- with $m -}}{{- $a = printf "%s data-mastodon=%q" $a . -}}{{- end -}}
+{{- with $b -}}{{- $a = printf "%s data-bluesky=%q" $a . -}}{{- end -}}
+{{- /* The same URLs, again, as u-syndication — where a copy of this post lives
+off-site is exactly what that property is for, and this shortcode is the only
+place the answer survives: Micro.blog records syndication but never exposes it to
+Hugo, and discards front matter that tries to carry it.
+One anchor per URL, so the comma-separated lists are split back out. Hidden and
+aria-hidden like the data div, and still exactly one .replies-data — these are
+anchors beside it, not a second copy of it. */ -}}
+{{- $urls := slice -}}
+{{- range slice $t $m $b -}}
+{{- if not (in $off (lower .)) -}}
+{{- range split . "," -}}
+{{- with trim . " " -}}{{- $urls = $urls | append . -}}{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if $a -}}
+{{- printf `<div class="replies-data" hidden aria-hidden="true"%s></div>` $a | safeHTML -}}
+{{- range $urls -}}
+{{- printf `<a class="u-syndication" rel="syndication" href=%q hidden aria-hidden="true"></a>` . | safeHTML -}}
+{{- end -}}
+{{- else -}}
+{{- warnf "replies shortcode: no threads, mastodon or bluesky URL given" -}}
+{{- end -}}

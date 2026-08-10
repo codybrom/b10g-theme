@@ -1,0 +1,44 @@
+{{/* Embed a Mastodon post.
+
+       {{< toot "https://mstdn.social/@codybrom/109655404941656199" >}}
+
+     Renders a real blockquote with a working link, then toot.js upgrades it in the
+     browser into a full embed (avatar, handle, media, counts).
+
+     Deliberately client-side rather than a build-time resources.GetRemote: the embed
+     stays current without a rebuild, it cannot break the site build if Mastodon is
+     slow or down, and it does not depend on Micro.blog's build sandbox allowing
+     outbound HTTP. Uses only functions available in old and new Hugo alike.
+
+     Kept in layouts/shortcodes/ (not layouts/_shortcodes/) so it works on any Hugo
+     version Micro.blog might be set to. */}}
+
+{{- $arg := trim (or (.Get 0) (.Get "url")) " " -}}
+{{- $url := "" -}}
+{{- $host := "" -}}
+{{- $id := "" -}}
+
+{{/* Pull the first http(s) URL out of the argument rather than assuming the whole
+     argument is one. Micro.blog's editor auto-linkifies pasted URLs, so the argument
+     often arrives as markdown — [mstdn.social/@me…](https://mstdn.social/@me/123) —
+     and may carry trailing punctuation. */}}
+{{- with findRE `https?://[^\s)"'<>\]]+` $arg 1 -}}
+  {{- $url = index . 0 -}}
+{{- end -}}
+
+{{- if $url -}}
+  {{- $host = replaceRE `^https?://([^/]+)(/.*)?$` "$1" $url -}}
+  {{- $m := findRE `/[0-9]+/?$` $url 1 -}}
+  {{- with $m }}{{ $id = replaceRE `[^0-9]` "" (index . 0) }}{{ end -}}
+{{- end -}}
+
+{{- if and $host $id -}}
+<blockquote class="toot" data-toot-instance="{{ $host }}" data-toot-id="{{ $id }}" cite="{{ $url }}">
+  <p><a href="{{ $url }}" rel="noopener">View this post on {{ $host }} ↗</a></p>
+</blockquote>
+<script type="module" src="{{ partial "asset.html" "js/toot.js" }}"></script>
+{{- else -}}
+  {{/* Warn, never errorf: a mistyped URL must not fail the whole site build. */}}
+  {{ warnf "toot shortcode: could not parse a Mastodon status URL from %q (expected e.g. https://mstdn.social/@user/109655404941656199)" $url }}
+  {{- with $url }}<p><a href="{{ . }}" rel="noopener">{{ . }}</a></p>{{ end -}}
+{{- end -}}

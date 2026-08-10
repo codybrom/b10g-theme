@@ -1,0 +1,86 @@
+# {{ .Site.Title }} — {{ .Site.BaseURL }}
+#
+# Content Signals declare how this site's content may be used. Syntax and
+# vocabulary come from the IETF AI Preferences (aipref) working group draft:
+#   https://contentsignals.org/
+#   https://datatracker.ietf.org/doc/draft-romm-aipref-contentsignals/
+#
+#   ai-train  training or fine-tuning AI models
+#   search    building a search index — links and short excerpts
+#   ai-input  feeding a page to a model for a live answer (RAG, grounding)
+#
+# All three are yes. Everything here is open to crawl, index, quote and learn
+# from. A link back is appreciated, not required.
+#
+# Content-Signal repeats in every group deliberately. robots.txt groups do not
+# inherit: a crawler that matches its own User-agent line never reads the
+# wildcard group, so a signal declared only there would never reach it.
+
+User-agent: *
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# OpenAI
+User-agent: GPTBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+User-agent: OAI-SearchBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+User-agent: ChatGPT-User
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# Anthropic. Claude-Web and anthropic-ai are retired tokens, kept because they
+# still appear in published bot lists; ClaudeBot is the one in use.
+User-agent: ClaudeBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+User-agent: Claude-Web
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+User-agent: anthropic-ai
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# Google. Google-Extended gates Gemini and Vertex training only — ordinary
+# Googlebot indexing is unaffected by it either way.
+User-agent: Google-Extended
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# Apple. Applebot-Extended likewise gates only Apple Intelligence training.
+User-agent: Applebot-Extended
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# Amazon
+User-agent: Amazonbot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# Common Crawl — the corpus most open models are trained from
+User-agent: CCBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# ByteDance
+User-agent: Bytespider
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+# Meta
+User-agent: meta-externalagent
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+
+Sitemap: {{ "sitemap.xml" | absURL }}

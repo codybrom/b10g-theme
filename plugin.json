@@ -1,0 +1,104 @@
+{
+  "version": "1.0.0",
+  "title": "b10g",
+  "description": "Hugo theme for Micro.blog, ported from b10g.xyz. Microposts, Pagefind search, Open Graph cards, and replies from Threads, Mastodon and Bluesky.",
+  "fields": [
+    {
+      "field": "params.social_api_base",
+      "label": "Comments API base URL",
+      "placeholder": "https://api.example.com"
+    },
+    {
+      "field": "params.author_name",
+      "label": "Byline name",
+      "placeholder": "Your name"
+    },
+    {
+      "field": "params.author_photo",
+      "label": "Profile photo URL (representative h-card)",
+      "placeholder": "https://example.com/uploads/you.jpg"
+    },
+    {
+      "field": "params.author_note",
+      "label": "Profile note (representative h-card)",
+      "placeholder": "A sentence about you, for IndieWeb directories"
+    },
+    {
+      "field": "params.author_nickname",
+      "label": "Profile nickname",
+      "placeholder": "The handle you go by"
+    },
+    {
+      "field": "params.author_job_title",
+      "label": "Profile job title",
+      "placeholder": "Head of Engineering"
+    },
+    {
+      "field": "params.author_org",
+      "label": "Profile organization",
+      "placeholder": "Where you work"
+    },
+    {
+      "field": "params.author_location",
+      "label": "Profile location, as Locality, Region",
+      "placeholder": "Tulsa, Oklahoma"
+    },
+    {
+      "field": "params.tagline",
+      "label": "Masthead tagline",
+      "placeholder": "thoughts on product, tech and design"
+    },
+    {
+      "field": "params.elsewhere",
+      "label": "Elsewhere links, as Title|URL — separate with commas",
+      "placeholder": "Mastodon|https://mstdn.social/@you, GitHub|https://github.com/you"
+    },
+    {
+      "field": "params.home_posts",
+      "label": "Posts on the home page",
+      "type": "integer",
+      "placeholder": "3"
+    },
+    {
+      "field": "params.favicon",
+      "label": "Favicon URL",
+      "placeholder": "Leave blank to use the one set in Micro.blog"
+    },
+    {
+      "field": "params.fediverse_creator",
+      "label": "Fediverse creator for link card credit, as @you@instance",
+      "placeholder": "Also allow this domain under Website attribution"
+    },
+    {
+      "field": "params.social_image",
+      "label": "Fallback social card image URL",
+      "placeholder": "Leave blank to use the card the theme ships"
+    },
+    {
+      "field": "params.comments_cache",
+      "label": "Reply cache (seconds)",
+      "type": "integer",
+      "placeholder": "60"
+    },
+    {
+      "field": "params.search",
+      "label": "Show search box",
+      "type": "boolean"
+    },
+    {
+      "field": "params.microblog_replies",
+      "label": "Show Micro.blog replies",
+      "type": "boolean"
+    },
+    {
+      "field": "params.edit_links",
+      "label": "Author edit links (turn on with ?edit=1)",
+      "type": "boolean"
+    },
+    {
+      "field": "params.webring",
+      "label": "IndieWeb Webring links in the rail (join first at xn--sr8hvo.ws)",
+      "type": "boolean"
+    }
+  ]
+}

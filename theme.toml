@@ -1,0 +1,12 @@
+name = "b10g"
+license = "MIT"
+licenselink = "https://github.com/codybrom/b10g-theme/blob/main/LICENSE"
+description = "The Hugo theme used by \"birdwatching\" (b10g.xyz) on Micro.blog"
+homepage = "https://b10g.xyz"
+tags = ["blog", "minimal", "dark", "indieweb"]
+features = ["blog", "dark mode", "social replies", "categories"]
+min_version = "0.141.0"
+
+[author]
+name = "Cody Bromley"
+homepage = "https://b10g.xyz"

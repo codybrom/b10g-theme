@@ -1,0 +1,119 @@
+{{/* One entry in a listing — home, archive, tag pages. Two shapes, matching how
+     the permalinks read:
+
+       quickposts — in full, with any images reduced to a filmstrip of thumbs
+       articles   — title, reading time and tags, excerpt, then "Continue reading"
+
+     Shared so the three listings can't drift. They had: the archive showing
+     titled posts with no excerpt at all, a block-level "Read more →" on media
+     notes, and the home page doing something else again.
+
+     Takes a page. The caller supplies the wrapping <article> or <li>. */}}
+
+{{ partial "post-time.html" . }}
+
+{{ if .Title }}
+  <h2 class="post-title">
+    {{/* htmlUnescape or entities render doubly escaped ("I&amp;rsquo;m"). */}}
+    <a class="p-name" href="{{ .Permalink }}">{{ .Title | htmlUnescape }}</a>
+  </h2>
+
+  {{/* Truncation, in priority order:
+         1. the <!--more--> tag, when set — .Summary respects it, .Truncated reports it
+         2. Hugo's own summary
+         3. never past the first in-post heading, whichever produced the text
+
+       split, not strings.Index — Hugo's strings namespace has no Index. */}}
+  {{ $body := cond .Truncated .Summary .Content }}
+  {{/* Whether any of the three actually held something back. A short post that
+       arrives here whole is shown whole, and promising more of it than exists
+       reads as a broken link even though it resolves. */}}
+  {{ $cut := .Truncated }}
+
+  {{/* Where the permalink should open, so "Continue reading" resumes the piece
+       instead of restarting it. The summary boundary has no element of its own —
+       post/single.html marks it with #more, on the same condition tested here, so
+       this never points at an anchor that was not written. */}}
+  {{ $frag := "" }}
+  {{ if and .Truncated (hasPrefix (trim .Content " \n\r\t") (trim .Summary " \n\r\t")) }}
+    {{ $frag = "#more" }}
+
+    {{/* .Truncated is not the same question as "is there more to read". The
+         replies shortcode leaves an empty hidden div and an empty u-syndication
+         anchor per URL at the end of every syndicated post, and Hugo's summary
+         stops before them — so a post shown here complete still reports itself
+         truncated, and offered a "Continue reading" that led to nothing but the
+         same words again. It is every cross-posted post, which is why it looked
+         arbitrary rather than systematic.
+
+         So ask what is actually held back: take the remainder, drop the markup
+         this theme knowingly hides, and see whether anything is left. Only the
+         theme's own hidden elements are stripped — anything else that survives,
+         an image or a stray tag, still counts as more to read. */}}
+    {{ $rest := strings.TrimPrefix (trim .Summary " \n\r\t") (trim .Content " \n\r\t") }}
+    {{ $rest = replaceRE `(?s)<div[^>]*class="replies-(data|auto)"[^>]*>.*?</div>` "" $rest }}
+    {{ $rest = replaceRE `(?s)<a[^>]*class="u-syndication"[^>]*>.*?</a>` "" $rest }}
+    {{ if eq (trim $rest " \n\r\t") "" }}
+      {{ $cut = false }}
+      {{ $frag = "" }}
+    {{ end }}
+  {{ end }}
+
+  {{ range slice "<h1" "<h2" "<h3" }}
+    {{ $parts := split $body . }}
+    {{ if gt (len $parts) 1 }}
+      {{ $body = index $parts 0 }}
+      {{ $cut = true }}
+      {{/* A heading inside the summary is the earlier boundary, so it takes over
+           as the target — and it already carries an id, from the render hook.
+           Read out of the opening tag only: a heading written as raw HTML has no
+           id, and the next one down the page must not be mistaken for it. */}}
+      {{ $tag := index (split (index $parts 1) ">") 0 }}
+      {{ $bits := split $tag `id="` }}
+      {{ if gt (len $bits) 1 }}
+        {{ $frag = printf "#%s" (index (split (index $bits 1) `"`) 0) }}
+      {{ else }}
+        {{ $frag = "" }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{/* Reading time and tags sit under the title, above the preview: they qualify
+       the headline, and the two together are what a reader weighs before deciding
+       to open the piece. Below the excerpt they arrived after that decision had
+       already been made. */}}
+  <div class="post-footer">
+    <span class="post-stats">{{ .ReadingTime }} min read</span>
+    {{ partial "post-hashtags.html" . }}
+  </div>
+
+  {{/* Scoped because this page carries more than one post body — see
+       scope-ids.html. */}}
+  <div class="post-excerpt body e-content">
+    {{- partial "scope-ids.html" (dict "html" (trim $body " \n\r\t") "page" .) | safeHTML -}}
+  </div>
+
+  {{/* Its own block, after the excerpt. It used to be spliced inside the last
+       paragraph so it read as the end of the sentence — but the excerpt is cut
+       mid-thought, so it attached itself to whatever fragment happened to be
+       last, and with the meta row gone from beneath it there is nothing left for
+       it to run into. As a block it is a control rather than prose. */}}
+  {{ if $cut }}
+    <a class="post-more" href="{{ .Permalink }}{{ $frag }}">Continue&nbsp;reading&nbsp;→</a>
+  {{ end }}
+{{ else }}
+  {{/* A quickpost reads in full; its images come out of the flow and render as
+       a filmstrip below the text.
+
+       (?s) matters: the render-image hook emits a <figure> across several lines,
+       and without it `.` stops at the newline so the figure is never matched —
+       which left empty <figure> shells carrying 15px margins each. */}}
+  {{ $text := replaceRE `(?s)<figure[^>]*>.*?</figure>` "" .Content }}
+  {{ $text = replaceRE `(?s)<img[^>]*>` "" $text }}
+  {{ $text = replaceRE `(?s)<p>\s*</p>` "" $text }}
+  <div class="post-excerpt body e-content post-body-note">
+    {{- partial "scope-ids.html" (dict "html" $text "page" .) | safeHTML -}}
+  </div>
+  {{ partial "post-filmstrip.html" . }}
+  {{ partial "post-hashtags.html" . }}
+{{ end }}

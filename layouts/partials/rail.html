@@ -1,0 +1,137 @@
+{{/* The contextual rail. Elsewhere is the constant; a table of contents stacks
+     above it on posts that have headings.
+
+     Both live inside .aside-col, which is one grid item on wide screens so the
+     two stack in normal flow and the rail hugs the contents list. Below the
+     breakpoint .aside-col becomes `display: contents`, promoting both to grid
+     items of .layout — which is what lets Elsewhere drop below the content
+     (where furniture belongs) while the contents list goes somewhere else
+     entirely. The script under the disclosure moves it into the article, under
+     the byline; the `order: -1` in the stylesheet is only where it lands for a
+     reader with no JS, since nothing else can reach inside .stream.
+
+     Making them plain siblings does not work: two grid items in one cell overlap
+     rather than stack, and giving them separate rows lets the row-spanning
+     .stream drive the row heights, which strands the rail far down the page.
+
+     Replies do NOT live here. They render below the post. */}}
+<div class="aside-col">
+{{/* Posts only. .IsPage was true for About and every other standalone page too,
+     which put a contents list beside pages that are read straight through. */}}
+{{ if eq .Type "post" }}
+  {{/* has-toc.html, not .Fragments.Identifiers: a page can have heading anchors
+       and still render an empty contents list, and the empty panel that produced
+       could not be collapsed on a wide viewport. The partial says why. It is
+       shared with post/single.html so the list and the script that wires it up
+       cannot disagree. */}}
+  {{ $toc := .TableOfContents }}
+  {{ if partial "has-toc.html" . }}
+    {{/* Ships closed, which is what the narrow layout wants, and is opened below
+         for the wide one — where the summary is hidden and the list has to be
+         visible. It used to ship open and let toc.js close it on narrow
+         viewports, but that ran after the first paint: the article rendered with
+         the list expanded above it and then jumped up ~270px.
+
+         data-pagefind-ignore because on narrow viewports this element is moved
+         inside .post, which carries data-pagefind-body — without it every post's
+         search excerpt would open with its own heading list. */}}
+    <details class="toc-sidebar" data-pagefind-ignore>
+      <summary>Contents</summary>
+      <nav class="toc">
+        <h2>Contents</h2>
+        {{ $toc }}
+      </nav>
+    </details>
+    {{/* Inline and un-deferred, immediately after the element, so it runs during
+         parsing and the disclosure is already in its final state before anything
+         paints. <details> cannot be opened by CSS, so this is the only way to
+         settle it that early, and the same reasoning covers the move: the article
+         is fully parsed by the time the parser reaches this script, so the list
+         is in place before the first paint rather than jumping there after it.
+         The stylesheet reveals the list at the same width for a reader with no JS
+         at all, and leaves it above the article, which is the best a stylesheet
+         can do — .toc-sidebar is a grid item of .layout there, and CSS cannot
+         place one inside a sibling.
+
+         Under the byline rather than above the date: a contents list is something
+         you consult once you have decided to read the piece, so it belongs after
+         the header that sells it, not wedged between the masthead and the title.
+
+         Re-run on the breakpoint, not just at load. A window dragged across 60em
+         would otherwise leave the list wherever the first pass put it — in the
+         rail column at narrow width, where .aside-col is `display: contents` and
+         it would land back above the article. */}}
+    <script>
+      (function () {
+        var toc = document.currentScript.previousElementSibling;
+        var col = toc.parentNode;
+        var meta = document.querySelector(".post > .post-meta");
+        var wide = matchMedia("(min-width: 60em)");
+        function place() {
+          if (wide.matches) {
+            col.prepend(toc);
+            toc.open = true;
+          } else if (meta) {
+            meta.after(toc);
+          }
+        }
+        place();
+        wide.addEventListener("change", place);
+      })();
+    </script>
+  {{ end }}
+{{ end }}
+
+<aside class="rail" id="rail">
+  {{/* Parsed in its own partial — the hidden h-card claims the same URLs as
+       u-url, and two copies of the parsing would drift. */}}
+  {{ $links := partial "elsewhere-links.html" . }}
+
+  {{/* Shown only inside the panel. Duplicated in markup rather than moved by JS
+       so it is there before the script runs. */}}
+  <nav class="rail-nav">
+    {{ range .Site.Menus.main }}
+      {{ $url := .URL | relLangURL }}
+      {{ $current := or ($.IsMenuCurrent "main" .) ($.HasMenuCurrent "main" .) (eq $.RelPermalink $url) }}
+      <a href="{{ $url }}"{{ if $current }} aria-current="page"{{ end }}>{{ .Name }}</a>
+    {{ end }}
+    {{ range .Site.Params.menu_links }}
+      <a href="{{ .url }}">{{ .title }}</a>
+    {{ end }}
+  </nav>
+
+  {{ with $links }}
+    <section>
+      <h2>Elsewhere</h2>
+      <ul>
+        {{ range . }}<li><a href="{{ .url }}" rel="me">{{ .title }}</a></li>{{ end }}
+      </ul>
+    </section>
+  {{ end }}
+
+  <section>
+    <h2>Feeds</h2>
+    <ul>
+      <li><a href="{{ "/feed.xml" | relURL }}">RSS</a> &middot; <a href="{{ "/feed.json" | relURL }}">JSON</a></li>
+    </ul>
+  </section>
+
+  {{/* Only when the page is really there, so the rail never points at a 404 on a
+       site that has not written one. No label above it: it is one link, and a
+       heading would only say the word twice. Its own title is the text, so
+       renaming the page renames the link. */}}
+  {{ with .Site.GetPage "/colophon" }}
+    <section>
+      <ul>
+        <li><a href="{{ .RelPermalink }}">{{ .Title | default "Colophon" }}</a></li>
+      </ul>
+    </section>
+  {{ end }}
+
+  {{/* Last, and in the rail rather than the post column, because the ring's
+       crawler only ever fetches the home page — whatever carries these links has
+       to be on it. The rail is on every page anyway. Also unheadinged: the
+       middle link names itself, as the colophon one does. */}}
+  {{ partial "webring.html" . }}
+</aside>
+</div>

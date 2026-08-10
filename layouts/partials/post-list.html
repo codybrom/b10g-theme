@@ -1,0 +1,10 @@
+{{/* Post listing for tag pages and _default/list.html. Entry rendering lives in
+     post-entry.html, shared with the home page and the archive. */}}
+<ul class="postList h-feed">
+  {{ range .Pages.ByDate.Reverse }}
+    {{ $p := . }}
+    <li class="post h-entry{{ if not $p.Title }} is-note{{ end }}">
+      {{ partial "post-entry.html" $p }}
+    </li>
+  {{ end }}
+</ul>

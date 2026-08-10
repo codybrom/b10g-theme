@@ -1,0 +1,17 @@
+{{- $icons := slice
+      (dict "src" (absURL "assets/img/favicon.svg") "type" "image/svg+xml" "sizes" "any")
+      (dict "src" (absURL "assets/img/favicon-76.png") "type" "image/png" "sizes" "76x76")
+      (dict "src" (absURL "assets/img/favicon-38.png") "type" "image/png" "sizes" "38x38")
+      (dict "src" (absURL "assets/img/apple-touch-icon.png") "type" "image/png" "sizes" "180x180" "purpose" "any")
+-}}
+{{- dict
+      "name" .Site.Title
+      "short_name" .Site.Title
+      "description" (.Site.Params.tagline | default .Site.Params.description)
+      "start_url" (absURL "/")
+      "scope" (absURL "/")
+      "display" "minimal-ui"
+      "theme_color" "#13171e"
+      "background_color" "#13171e"
+      "icons" $icons
+    | jsonify (dict "indent" "  ") -}}

@@ -1,0 +1,23 @@
+{{/* Does this page have a contents list worth rendering?
+
+     Asked in one place because two templates act on the answer — rail.html paints
+     the list, post/single.html loads the script that wires it up — and when they
+     disagree one of them is wrong about a page.
+
+     The test is whether Hugo's own TOC came back with entries in it, which looks
+     indirect and is not. `.Fragments.Identifiers` is the tempting version: it
+     names the heading anchors on the page, it reads as the direct question, and
+     it is a different question. Hugo renders the TOC from the headings inside
+     markup.tableOfContents.startLevel..endLevel, and startLevel defaults to 2 —
+     so a post whose only heading is an h1 reports one identifier and an empty
+     `<nav id="TableOfContents"></nav>`. Acting on the identifier gave that post a
+     "Contents" panel in the rail with nothing under it (the wide layout hides the
+     summary and shows the h2, so it could not even be collapsed) and fetched
+     toc.js to observe a list with no links.
+
+     Anything that describes the headings rather than the list will have this bug
+     in some form, because the list is a filtered view of the headings and only
+     Hugo knows the filter. So ask the list.
+
+     Takes a page. Returns a bool. */}}
+{{ return strings.Contains .TableOfContents "<li>" }}

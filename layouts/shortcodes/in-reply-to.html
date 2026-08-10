@@ -1,0 +1,39 @@
+{{- /* Declare that this post is a reply to something on another site, and show a
+copy of it above the post.
+
+{{< in-reply-to url="URL" author="Name" author_url="URL" photo="URL"
+                name="Post title" excerpt="A sentence or two." >}}
+
+Only url is required; everything else fills the card in. With just a URL it still
+works — the host stands in for a title, and the h-cite carries the link, which is
+the part other sites read.
+
+Why a shortcode rather than front matter: Micro.blog discards custom front matter
+and never exposes it to Hugo, so the post body is the only channel that survives.
+The {{< replies >}} shortcode exists for the same reason.
+
+Two things follow from using this, both wanted:
+
+  - The URL becomes a real link in the post, so the Webmention sender in b10g-api
+    picks it up on the next publish and delivers it without anything else being
+    configured.
+  - Because the link is marked u-in-reply-to, a receiver that threads replies will
+    show this post as a comment on theirs rather than as a bare mention.
+
+Fill it in by hand, or paste the URL into the reply-context helper in b10g-write,
+which reads the page and writes the attributes for you. Nothing is fetched at
+build time: Micro.blog builds the site, the network there is not ours to rely on,
+and a context that sometimes renders is worse than one that always does. */ -}}
+{{- $url := trim (or (.Get "url") "") " " -}}
+{{- if $url -}}
+{{- partial "reply-context.html" (dict
+      "url" $url
+      "author" (.Get "author")
+      "author_url" (.Get "author_url")
+      "photo" (.Get "photo")
+      "name" (.Get "name")
+      "excerpt" (.Get "excerpt"))
+-}}
+{{- else -}}
+{{- warnf "in-reply-to shortcode: url is required" -}}
+{{- end -}}

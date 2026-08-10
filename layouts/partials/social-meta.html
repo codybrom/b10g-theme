@@ -1,0 +1,156 @@
+{{/* OpenGraph + Twitter card tags.
+
+     Micro.blog injects none of these itself (verified: zero og:/twitter: tags on a
+     stock build), so links shared to Threads, Mastodon, and Bluesky render with no
+     preview card. Since b10g.xyz's per-post `metas.description`/`metas.image` could
+     not survive the Markdown import — nested front matter breaks Micro.blog's
+     parser — everything here is derived from the post itself, which also means new
+     posts get cards with no extra work. */}}
+
+{{ $isPost := or (eq .Type "post") .IsPage }}
+
+{{/* Description, from Micro.blog's own fields only:
+       1. `description` front matter, if ever set
+       2. `summary` — a real per-post field Micro.blog stores and exposes (edit it in
+          the post editor); empty by default, so setting it there wins automatically
+       3. the post's own summary, which honors <!--more-->
+       4. the site description
+     No theme-side lookup table: anything authored lives in Micro.blog, not here. */}}
+{{ $desc := "" }}
+{{ with .Description }}{{ $desc = . }}{{ end }}
+{{ if not $desc }}{{ with .Params.summary }}{{ $desc = . }}{{ end }}{{ end }}
+{{ if not $desc }}{{ with .Summary }}{{ $desc = . | plainify | htmlUnescape }}{{ end }}{{ end }}
+{{ if not $desc }}{{ $desc = .Site.Params.description }}{{ end }}
+{{ $desc = $desc | plainify | htmlUnescape | chomp }}
+{{/* Capped for the platforms that show a description at all. truncate rather
+     than substr: it cuts on a word boundary instead of mid-word, appends the
+     ellipsis itself, counts runes where len counts bytes, and leaves anything
+     already short of the cap completely alone — so it needs no length guard. */}}
+{{ $desc = $desc | truncate 300 "…" }}
+
+{{/* Image: Micro.blog photo param > first image in the body > site avatar. */}}
+{{ $img := "" }}
+{{ with .Params.photos }}{{ $img = index . 0 }}{{ end }}
+{{ if not $img }}{{ with .Params.images }}{{ $img = index . 0 }}{{ end }}{{ end }}
+{{/* The first <img> in the body, held on to so the alt can be read off the same
+     tag as the src. Matching the tag a second time by its URL does not work: a
+     src is full of regex metacharacters. */}}
+{{ $firstImg := "" }}
+{{ with findRE `<img[^>]+>` .Content 1 }}{{ $firstImg = index . 0 }}{{ end }}
+
+{{ if not $img }}
+  {{/* Two-step extraction: Go's `.` does not cross newlines, and Micro.blog/Lume
+       emit <img> tags whose alt text wraps onto its own line, so a single
+       replaceRE over the whole tag silently returns the tag instead of the src. */}}
+  {{ with $firstImg }}
+    {{ with findRE `src="[^"]*"` . 1 }}
+      {{ $img = strings.TrimSuffix `"` (strings.TrimPrefix `src="` (index . 0)) }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{/* Last resort, and it has to exist: a post with no picture in it emitted no
+     og:image at all, and every platform draws its own placeholder for that —
+     Mastodon a grey sheet of paper, which is what a shared link looked like.
+
+     Square, and deliberately not the 1200x630 card sitting beside it. A stand-in
+     must never be dressed as a hero image: at banner size every post the site
+     writes without a picture arrives in a timeline looking identical and takes a
+     screenful to say nothing. Small and square, it lands in the compact slot the
+     card already had, reads as the site's mark rather than as this post's
+     picture, and leaves the large treatment to posts that earn it with an image
+     of their own. The twitter:card type below is held at summary for the same
+     reason. The setting still wins where one is configured. */}}
+{{ $fallback := false }}
+{{ if not $img }}
+  {{ $img = .Site.Params.social_image | default ("assets/img/social-icon.png" | relURL) }}
+  {{ $fallback = not .Site.Params.social_image }}
+{{ end }}
+
+{{/* Alt text, read off the same tag the src came from — only when that is where
+     the card image came from, since a photo param or the site avatar has nothing
+     to do with the body. Left empty, Facebook's debugger reports og:image:alt as
+     missing and a screen reader announcing a shared link has nothing to say
+     about the picture. */}}
+{{ $imgAlt := "" }}
+{{ with $firstImg }}
+  {{ if strings.Contains . $img }}
+    {{ with findRE `alt="[^"]*"` . 1 }}
+      {{ $imgAlt = strings.TrimSuffix `"` (strings.TrimPrefix `alt="` (index . 0)) | htmlUnescape }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{/* The shipped card is the theme's own, so it can say what it is. The block
+     above only speaks for an image lifted out of the post body. */}}
+{{ if $fallback }}{{ $imgAlt = .Site.Title }}{{ end }}
+
+{{/* Threads and Facebook show the title and little else, and "b10g.xyz" there
+     said nothing about the post. The description still carries the full text for
+     anywhere that shows both. */}}
+{{ $title := partial "post-label.html" . }}
+{{ if not $title }}{{ $title = .Site.Title }}{{ end }}
+
+<meta property="og:type" content="{{ cond $isPost "article" "website" }}">
+<meta property="og:site_name" content="{{ .Site.Title }}">
+<meta property="og:locale" content="{{ .Site.Language.Lang | default "en" }}">
+<meta property="og:title" content="{{ $title }}">
+{{ with $desc }}<meta property="og:description" content="{{ . }}">{{ end }}
+<meta property="og:url" content="{{ .Permalink }}">
+{{ with $img }}<meta property="og:image" content="{{ . | absURL }}">{{ end }}
+{{ with $imgAlt }}<meta property="og:image:alt" content="{{ . }}">{{ end }}
+{{ if and $isPost (not .Date.IsZero) }}
+<meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+{{ end }}
+
+<meta name="twitter:card" content="{{ cond (and (ne $img "") (not $fallback)) "summary_large_image" "summary" }}">
+<meta name="twitter:title" content="{{ $title }}">
+{{ with $desc }}<meta name="twitter:description" content="{{ . }}">{{ end }}
+{{ with $img }}<meta name="twitter:image" content="{{ . | absURL }}">{{ end }}
+{{ with $imgAlt }}<meta name="twitter:image:alt" content="{{ . }}">{{ end }}
+{{ with $desc }}<meta name="description" content="{{ . }}">{{ end }}
+
+{{/* The "More from @you" row under a Mastodon link card. Two halves, and this
+     one on its own does nothing at all:
+
+     - this tag, which Mastodon reads through opengraph_tag, so property= or
+       name= both match and the case does not matter
+     - the account itself has to allow it, under Profile → Verification →
+       Website attribution on your instance. FetchLinkCardService only sets the
+       card's author when can_be_attributed_from?(domain) holds, which is a set
+       intersection against the account's own attribution_domains list.
+
+     So a missing row is far more likely to be the profile setting than this
+     markup. Nothing here reports the failure — the card simply renders without
+     the row, exactly as it does for a site that never claimed an author.
+
+     Written @user@instance; a value pasted without the leading @ is fixed up
+     rather than shipped broken. */}}
+{{ $creator := trim (.Site.Params.fediverse_creator | default "") " " }}
+
+{{/* Unset, the handle is worked out rather than asked for: Micro.blog injects a
+     rel=me link to the account's own profile into every page, and the fediverse
+     handle is that username at micro.blog.
+
+     Read back out of the injected partial because Hugo has no param carrying it.
+     Micro.blog's own themes write `micro.blog/{{ .Site.Author.username }}`, but
+     .Site.Author was removed from Hugo in 0.124 and on the 0.158 the platform
+     pins it does not evaluate at all — it errors with "can't evaluate field
+     Author in type page.Site". The link is the only source left.
+
+     Matched on the rel=me link specifically. The same injected head carries
+     micro.blog/micropub, /webmention, /indieauth and /users, and a pattern loose
+     enough to miss that picks one of them up instead and claims an account named
+     "micropub". Renders nothing off-platform, where the partial is a stub. */}}
+{{ if not $creator }}
+  {{ $injected := printf "%s" (partial "microblog_head.html" .) }}
+  {{ with findRE `rel="me"[^>]*href="https://micro\.blog/[^"/?#]+"` $injected 1 }}
+    {{ $user := replaceRE `.*micro\.blog/([^"/?#]+)".*` "$1" (index . 0) }}
+    {{ with $user }}{{ $creator = printf "@%s@micro.blog" . }}{{ end }}
+  {{ end }}
+{{ end }}
+
+{{ with $creator }}
+  {{ $handle := . }}
+  {{ if not (hasPrefix $handle "@") }}{{ $handle = printf "@%s" $handle }}{{ end }}
+  <meta name="fediverse:creator" content="{{ $handle }}">
+{{ end }}
+

@@ -1,0 +1,14 @@
+{{/* "June 26th, 2026" — matching Lume's HUMAN_DATE.
+
+     Go's time layout has no ordinal token, so a format string like
+     "January 2nd, 2006" emits a literal "nd" ("June 26nd"). humanize supplies one:
+     given an integer it returns the number with the suffix already attached, and it
+     knows the 11th/12th/13th exception that a bare last-digit rule gets wrong. That
+     exception is the whole reason this used to be ten lines of arithmetic; it is
+     not worth carrying a second copy of. Checked against the arithmetic it replaced
+     for all 31 days, identical throughout.
+
+     %s, not %d: humanize returns the number and its suffix as one string.
+
+     Takes a time value: {{ partial "human-date.html" .Date }} */}}
+{{ return printf "%s %s, %s" (.Format "January") (humanize .Day) (.Format "2006") }}

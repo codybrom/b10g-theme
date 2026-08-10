@@ -1,0 +1,18 @@
+{{ define "bodyClass" }}body-home{{ end }}
+{{ define "main" }}
+{{/* No display headline — the tagline sits in the masthead, so the stream starts
+     under the rule. Entry rendering is shared with the archive and tag pages;
+     see partials/post-entry.html. */}}
+<section class="postList h-feed">
+  {{ $posts := where .Site.RegularPages "Type" "post" }}
+  {{ $count := .Site.Params.home_posts | default 3 }}
+  {{ range first $count $posts.ByDate.Reverse }}
+    {{ $p := . }}
+    <article class="post h-entry{{ if not $p.Title }} is-note{{ end }}">
+      {{ partial "post-entry.html" $p }}
+    </article>
+  {{ end }}
+</section>
+
+<p class="stream-more"><a href="{{ "/archive/" | relURL }}">See all posts in the archive →</a></p>
+{{ end }}

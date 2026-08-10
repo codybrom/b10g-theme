@@ -1,0 +1,35 @@
+{{/* Micro.blog renders /archive/ as the home page under a custom `archivehtml` output
+     format — same story as list.photoshtml.html. The homepage links here, so without
+     this template that link lands back on the homepage. */}}
+{{ define "bodyClass" }}body-page{{ end }}
+{{ define "main" }}
+<header class="page-header">
+  <h1 class="page-title">Archive</h1>
+
+</header>
+
+{{/* .Site.Taxonomies works on both Hugo 0.91 (what Micro.blog runs) and current
+     versions, unlike the `taxonomyTerm` kind the Blank theme uses. */}}
+{{ with .Site.Taxonomies.categories }}
+  {{/* Labeled "Tags:" to match b10g.xyz, even though these are Micro.blog
+       categories and the URLs are /categories/. The class matches the old site's
+       markup too; styling comes from the shared `.page-navigation ul` rule. */}}
+  <nav class="page-navigation">
+    <h2>Tags:</h2>
+    <ul class="page-navigation-tags">
+      {{ range $name, $taxonomy := . }}
+        <li><a class="badge" href="{{ (printf "/categories/%s/" ($name | urlize)) | relURL }}">{{ $name }}</a></li>
+      {{ end }}
+    </ul>
+  </nav>
+{{ end }}
+
+<ul class="postList h-feed">
+  {{ range (where .Site.RegularPages "Type" "post").ByDate.Reverse }}
+    {{ $p := . }}
+    <li class="post h-entry{{ if not $p.Title }} is-note{{ end }}">
+      {{ partial "post-entry.html" $p }}
+    </li>
+  {{ end }}
+</ul>
+{{ end }}

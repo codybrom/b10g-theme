@@ -1,0 +1,66 @@
+{{- /* A reply context: a copy of the post being replied to, shown above the reply.
+
+Takes a dict: url (required), author, author_url, photo, name, excerpt.
+
+The markup is the point. `u-in-reply-to h-cite` is what tells a receiving site
+that our Webmention is a *reply* to that post rather than a passing mention — the
+difference between appearing in its comment thread and appearing in a list of
+links. So this has to be in the HTML the server sends: other people's parsers read
+it, and anything injected by script afterwards is invisible to them.
+
+Scoping note, because two `p-name`s look like a mistake: the one inside the author
+anchor belongs to the nested h-card, and the one on the title belongs to the
+h-cite. A nested microformats root consumes its own properties, so they do not
+collide. The "In reply to" label sits outside the h-cite for the same reason —
+inside, it would be loose text in a citation that claims it as content. */ -}}
+{{- $url := trim (or .url "") " " -}}
+{{- if $url -}}
+{{- $author := trim (or .author "") " " -}}
+{{- $authorUrl := trim (or .author_url "") " " -}}
+{{- $photo := trim (or .photo "") " " -}}
+{{- $name := trim (or .name "") " " -}}
+{{- $excerpt := trim (or .excerpt "") " " -}}
+{{- /* With nothing but a URL, the host is the only honest label available — and
+it is still a real reply context, because the h-cite carries the URL. */ -}}
+{{- $host := "" -}}
+{{- with urls.Parse $url -}}{{- $host = strings.TrimPrefix "www." .Host -}}{{- end -}}
+{{- $title := or $name $host $url -}}
+<div class="reply-context">
+  <p class="reply-context-label">In reply to</p>
+  <div class="u-in-reply-to h-cite">
+    {{- if or $author $photo -}}
+    {{- /* The h-card is on a <span>, not on the link, and its u-url is explicit —
+    the same shape the byline uses, for the same two reasons. A card that owns a
+    photo needs an element to hold both, and an <a> inside an <a> is not markup.
+    More to the point, `class="p-author h-card u-url"` on one anchor would hand
+    the u-url to the *parent*: it would say this cited post lives at the author's
+    home page. Left implied instead, it parses as no author URL at all, which is
+    what happened here before this comment existed. */ -}}
+    <span class="reply-context-author p-author h-card">
+      {{- with $photo -}}
+      <img class="u-photo" src="{{ . }}" alt="" width="24" height="24" loading="lazy" decoding="async">
+      {{- end -}}
+      {{- if $authorUrl -}}
+      <a class="p-name u-url" href="{{ $authorUrl }}">{{ or $author $host }}</a>
+      {{- else -}}
+      <span class="p-name">{{ or $author $host }}</span>
+      {{- end -}}
+    </span>
+    {{- end -}}
+    {{- /* p-name only when a title was actually supplied. The link always needs
+    u-url — that is the citation — but labelling it with the host and calling that
+    the post's name asserts something untrue, and a parser has no way to tell the
+    difference.
+
+    It does not always come out as "no name": with a URL and nothing else, this
+    card has no nested h-card, so nothing suppresses the implied-name rule and a
+    parser reads the link text — the host — as the name anyway. That is a weaker
+    claim than an explicit p-name and there is nothing better to offer, so it is
+    left alone. Give the author or a title and the implication stops. */ -}}
+    <a class="reply-context-title{{ with $name }} p-name{{ end }} u-url" href="{{ $url }}">{{ $title }}</a>
+    {{- with $excerpt -}}
+    <div class="reply-context-body p-content">{{ . }}</div>
+    {{- end -}}
+  </div>
+</div>
+{{- end -}}

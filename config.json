@@ -1,0 +1,37 @@
+{
+  "mediaTypes": {
+    "application/manifest+json": {
+      "suffixes": ["webmanifest"]
+    }
+  },
+  "outputFormats": {
+    "Manifest": {
+      "mediaType": "application/manifest+json",
+      "baseName": "site",
+      "isPlainText": true,
+      "notAlternative": true
+    }
+  },
+  "module": {
+    "mounts": [
+      { "source": "layouts", "target": "layouts" },
+      { "source": "static", "target": "static" },
+      { "source": "static/assets", "target": "assets" }
+    ]
+  },
+  "outputs": {
+    "home": [
+      "HTML",
+      "RSS",
+      "JSON",
+      "RSD",
+      "ArchiveHTML",
+      "ArchiveJSON",
+      "PhotosHTML",
+      "PhotosJSON",
+      "PodcastXML",
+      "PodcastJSON",
+      "Manifest"
+    ]
+  }
+}
