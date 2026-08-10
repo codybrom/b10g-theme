@@ -2204,13 +2204,20 @@ a.comments-stat-name:hover {
     margin-top: var(--space-4);
   }
 
+  /* The row qualifies the title, so it binds upward: a hairline above it and a
+     clear break below, rather than the near-even gaps that left it floating
+     between the two. The margins are deliberately lopsided — read as line
+     boxes they are 4px and 32px, but the title's 28px leading and descenders
+     eat most of the first, so what lands on screen is closer to 6px and 30px.
+     Fonts with heavier descent metrics eat more still, which is why the gap
+     above has to start this tight. */
   & .post-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     column-gap: var(--space-4);
     row-gap: var(--space-1);
-    margin: 0 0 var(--space-6);
+    margin: 0 0 var(--space-7);
     font: var(--font-small-ui);
     color: var(--dim);
 
@@ -2241,7 +2248,7 @@ a.comments-stat-name:hover {
   & .post-title {
     font: 700 1.75rem/1.25 var(--font-family-ui);
     letter-spacing: -0.02em;
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-1);
   }
 
   & .post-body {
