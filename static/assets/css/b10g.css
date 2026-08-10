@@ -777,8 +777,20 @@ code[class*="language-"]::selection {
   background: rgb(0 0 0 / 55%);
 }
 
+/* The site nav, in the rail at every width. It used to be a mobile-only copy of
+   .mast-nav, display: none until the rail became the off-canvas panel; now the
+   masthead keeps Archive alone and this is where the rest of the nav lives. The
+   margin matches `.rail section + section`, so it is spaced off Elsewhere the way
+   Elsewhere is spaced off Feeds. Font comes from .rail — the point is that these
+   read as rail links rather than as a masthead in the wrong place. */
 .rail-nav {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-7);
+}
+.rail-nav a[aria-current="page"] {
+  color: var(--accent);
 }
 
 .mast-nav {
@@ -786,6 +798,13 @@ code[class*="language-"]::selection {
   display: flex;
   align-items: center;
   gap: var(--space-5);
+}
+/* The auto margin above is what holds search against the right edge — it belongs
+   to the nav, and on a site with no archive there is no nav to carry it. Not on
+   .mast-search unconditionally: two auto margins in one flex row split the free
+   space between them and would strand the nav in the middle of the masthead. */
+.masthead:not(:has(.mast-nav)) > .mast-search {
+  margin-left: auto;
 }
 .mast-nav a {
   font: 0.75rem/1 var(--font-family-mono);
@@ -1335,11 +1354,12 @@ blockquote:not(.toot) > :last-child {
    overflow the block below documents. Tying the two states together is what
    keeps the masthead from re-wrapping the moment focus leaves.
 
-   So on desktop, while a query is in the box, About and Archive are genuinely
-   not on the page: .rail-nav carries the same links but is display:none above
-   the breakpoint. They come back when the field is empty again — Escape, or
-   Pagefind's own Clear button inside the field — not merely when it is blurred.
-   If that ever needs to change, the field's width rule has to change with it.
+   So on desktop, while a query is in the box, Archive is genuinely not on the
+   page — it is the only thing the masthead nav holds. The rest of the nav is
+   unaffected: it lives in the rail now, which the takeover does not reach. Archive
+   comes back when the field is empty again — Escape, or Pagefind's own Clear
+   button inside the field — not merely when it is blurred. If that ever needs to
+   change, the field's width rule has to change with it.
 
    Below 60em none of this applies — .mast-nav is hidden outright there and the
    mobile block gives the open field the full width of the masthead. */
@@ -1911,6 +1931,12 @@ body {
 }
 
 @media (min-width: 60em) {
+  /* Archive has a seat in the masthead up here, and the rail carries it only so
+     the panel below the breakpoint keeps the link where it has always been. */
+  .rail-nav-archive {
+    display: none;
+  }
+
   .toc-sidebar > summary {
     display: none;
   }

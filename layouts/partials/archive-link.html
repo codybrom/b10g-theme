@@ -1,0 +1,28 @@
+{{/* The Archive link, for whichever template needs it.
+
+     Not a menu lookup. Micro.blog renders the archive as an output format of the
+     home page — ArchiveHTML, published to /archive/ — so it exists whether or not
+     anyone listed it in the nav, and a menu lookup would miss it on a site that
+     did not. Asking the output format is the direct question, and it fails the
+     right way: no ArchiveHTML, no link, so this can never point at a 404.
+
+     The menu is still consulted, but only for the label, so a site that renamed
+     the entry keeps its own word for it.
+
+     Known gap this cannot close: on /archive/ itself the link is never marked
+     aria-current. Hugo renders that page as the home page under another format
+     and .RelPermalink stays "/" throughout — the built page's canonical tag says
+     so — leaving nothing to compare a URL against. It is why the caller does not
+     bother computing one.
+
+     Takes a page. Returns a dict of url and name, or nothing. */}}
+{{ $out := "" }}
+{{ with .Site.Home.OutputFormats.Get "archivehtml" }}
+  {{ $url := .RelPermalink }}
+  {{ $name := "Archive" }}
+  {{ range $.Site.Menus.main }}
+    {{ if eq (.URL | relLangURL) $url }}{{ $name = .Name }}{{ end }}
+  {{ end }}
+  {{ $out = dict "url" $url "name" $name }}
+{{ end }}
+{{ return $out }}

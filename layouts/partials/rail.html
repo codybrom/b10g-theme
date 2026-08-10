@@ -87,14 +87,43 @@
        u-url, and two copies of the parsing would drift. */}}
   {{ $links := partial "elsewhere-links.html" . }}
 
-  {{/* Shown only inside the panel. Duplicated in markup rather than moved by JS
-       so it is there before the script runs. */}}
+  {{/* The site's navigation, above Elsewhere. On a wide viewport this is all of
+       it — the masthead keeps Archive alone — and inside the panel below the
+       breakpoint it is all of it including Archive, which is where Archive
+       already was. So the markup carries every link at every width and the
+       stylesheet drops the one that would be shown twice.
+
+       Duplicated in markup rather than moved by JS so it is there before the
+       script runs.
+
+       .IsMenuCurrent alone is not enough: it only matches menu entries attached
+       to a page via front matter, and Micro.blog defines these in config with a
+       bare URL, so it returns false on the very page the entry points at. That
+       left aria-current never firing — and since the accent's only job is to mark
+       the current page, the accent never appeared at all. Compare the resolved
+       URL as well. */}}
+  {{ $archive := partial "archive-link.html" . }}
   <nav class="rail-nav">
     {{ range .Site.Menus.main }}
       {{ $url := .URL | relLangURL }}
-      {{ $current := or ($.IsMenuCurrent "main" .) ($.HasMenuCurrent "main" .) (eq $.RelPermalink $url) }}
-      <a href="{{ $url }}"{{ if $current }} aria-current="page"{{ end }}>{{ .Name }}</a>
+      {{/* The archive entry is skipped here and emitted once below, so the link
+           is the same one the masthead shows and says the same word, whether the
+           menu happens to list it or not. This is the only place that has to
+           recognise it; the masthead no longer walks the menu at all. */}}
+      {{ if not (and $archive (eq $url $archive.url)) }}
+        {{ $current := or ($.IsMenuCurrent "main" .) ($.HasMenuCurrent "main" .) (eq $.RelPermalink $url) }}
+        <a href="{{ $url }}"{{ if $current }} aria-current="page"{{ end }}>{{ .Name }}</a>
+      {{ end }}
     {{ end }}
+    {{/* In the menu's own position rather than at the end: Micro.blog puts
+         Archive second and the panel has always read About, Archive. Hidden above
+         the breakpoint, where the masthead is showing it. */}}
+    {{ with $archive }}
+      <a class="rail-nav-archive" href="{{ .url }}">{{ .name }}</a>
+    {{ end }}
+    {{/* Social profiles are declared via rel="me" in head.html — what Mastodon and
+         IndieAuth actually read — and listed under Elsewhere below. Use
+         `menu_links` for anything else; each entry needs `title` and `url`. */}}
     {{ range .Site.Params.menu_links }}
       <a href="{{ .url }}">{{ .title }}</a>
     {{ end }}
