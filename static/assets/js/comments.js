@@ -38,10 +38,10 @@ class SocialReplies extends HTMLElement {
       timeStyle: "short",
     });
 
-    const mastodonUrls = splitAttr(
-      this.getAttribute("mastodon") || this.getAttribute("src"),
+    const mastodonUrls = toURLs(
+      splitAttr(this.getAttribute("mastodon") || this.getAttribute("src")),
     );
-    const blueskyUrls = splitAttr(this.getAttribute("bluesky"));
+    const blueskyUrls = toURLs(splitAttr(this.getAttribute("bluesky")));
     const threadsRaw = splitAttr(this.getAttribute("threads"));
     // Media IDs, positionally aligned with the threads URLs. Resolving a shortcode
     // instead costs the proxy a walk through recent posts, which reaches only a few
@@ -67,8 +67,8 @@ class SocialReplies extends HTMLElement {
     // deleted on one service is exactly that case, and it is the one where the
     // others still have something to show.
     await Promise.allSettled([
-      ...mastodonUrls.map((u) => this.#fetchMastodon(new URL(u))),
-      ...blueskyUrls.map((u) => this.#fetchBluesky(new URL(u))),
+      ...mastodonUrls.map((u) => this.#fetchMastodon(u)),
+      ...blueskyUrls.map((u) => this.#fetchBluesky(u)),
       ...threadsEntries.map((e) =>
         this.#fetchThreads(e.shortcode, threadsOwner, e.mediaId),
       ),
@@ -653,6 +653,25 @@ function splitAttr(val) {
         .map((s) => s.trim())
         .filter(Boolean)
     : [];
+}
+
+// The Mastodon and Bluesky attributes are fed straight to the URL constructor,
+// which throws on anything that isn't a valid absolute address — a shortcode
+// that carried a Markdown link or a stray word for one reply, say. Building the
+// list in the map meant that throw escaped connectedCallback before any fetch
+// ran, so one malformed entry left every platform's replies unrendered. Parse
+// them up front and drop the bad ones, the same per-source resilience the
+// allSettled fetch already has (and parseThreadsRef's own try/catch).
+function toURLs(raws) {
+  return raws
+    .map((u) => {
+      try {
+        return new URL(u);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
 }
 
 /** A Threads reference off the shortcode attribute: either a post URL, whose
