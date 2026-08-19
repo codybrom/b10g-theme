@@ -16,6 +16,10 @@ template actions inside the tag. */ -}}
 {{- $ti := trim (or (.Get "threads_id") "") " " -}}
 {{- $m := trim (or (.Get "mastodon") "") " " -}}
 {{- $b := trim (or (.Get "bluesky") "") " " -}}
+{{- /* Raw strings, before any off-list filtering: post-syndication.html's
+merge needs to see "none" to distinguish a platform the author retired from
+one they said nothing about. */ -}}
+{{- .Page.Store.Set "replies" (dict "threads" $t "threadsId" $ti "mastodon" $m "bluesky" $b) -}}
 {{- /* "none" is carried through as a value rather than dropped here: the script
 needs to tell "the author switched this off" from "the author said nothing about
 it", and only the first should override what Micro.blog recorded. */ -}}

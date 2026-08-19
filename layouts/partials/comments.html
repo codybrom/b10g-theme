@@ -17,66 +17,24 @@
   merged in comments.js, where a platform named by the shortcode wins and
   the rest fall back to whatever Micro.blog recorded.
 
-      .Params.threads.url   .Params.threads.id (media ID)
-      .Params.mastodon.hostname / .username / .id
-      .Params.bluesky.link
+  Parsing .Params into URLs lives in post-syndication.html now, alongside the
+  same merge comments.js does — Hugo needs its own copy for page.json.json.
+  This partial only reads back the "auto" (Micro.blog-recorded) half of what
+  that returns and renders it.
 */}}
 
 
-  {{/* --- Threads --- */}}
-  {{ $threadsList := slice }}
-  {{ with .Params.comments_threads }}
-    {{ range split . "," }}{{ $threadsList = $threadsList | append (trim . " ") }}{{ end }}
-  {{ else }}
-    {{ with .Params.threads }}
-      {{ $u := "" }}
-      {{ with .url }}{{ $u = . }}{{ end }}
-      {{ if and (not $u) .username .id }}
-        {{ $u = printf "https://www.threads.com/@%s/post/%v" .username .id }}
-      {{ end }}
-      {{ with $u }}{{ $threadsList = $threadsList | append . }}{{ end }}
-    {{ end }}
-  {{ end }}
-
-  {{/* --- Mastodon --- */}}
-  {{ $mastodonList := slice }}
-  {{ with .Params.comments_mastodon }}
-    {{ range split . "," }}{{ $mastodonList = $mastodonList | append (trim . " ") }}{{ end }}
-  {{ else }}
-    {{ with .Params.mastodon }}
-      {{ if and .hostname .username .id }}
-        {{ $mastodonList = $mastodonList | append (printf "https://%s/@%s/%v" .hostname .username .id) }}
-      {{ end }}
-    {{ end }}
-  {{ end }}
-
-  {{/* --- Bluesky --- */}}
-  {{ $blueskyList := slice }}
-  {{ with .Params.comments_bluesky }}
-    {{ range split . "," }}{{ $blueskyList = $blueskyList | append (trim . " ") }}{{ end }}
-  {{ else }}
-    {{/* Micro.blog's docs list .link, its own Blank theme reads .url — accept
-         either, and fall back to building one from handle + id. */}}
-    {{ with .Params.bluesky }}
-      {{ $u := "" }}
-      {{ with .link }}{{ $u = . }}{{ end }}
-      {{ if not $u }}{{ with .url }}{{ if hasPrefix . "http" }}{{ $u = . }}{{ end }}{{ end }}{{ end }}
-      {{ if and (not $u) .handle .id }}
-        {{ $u = printf "https://bsky.app/profile/%s/post/%v" .handle .id }}
-      {{ end }}
-      {{ with $u }}{{ $blueskyList = $blueskyList | append . }}{{ end }}
-    {{ end }}
-  {{ end }}
+  {{ $auto := (partial "post-syndication.html" .).auto }}
 
   {{/* Attributes are assembled into a string rather than written inline so an
        HTML formatter cannot reflow template actions inside the tag. */}}
   {{ $a := "" }}
-  {{ with $threadsList }}{{ $a = printf "%s data-threads=%q" $a (delimit . ",") }}{{ end }}
+  {{ with $auto.threads }}{{ $a = printf "%s data-threads=%q" $a (delimit . ",") }}{{ end }}
   {{/* Micro.blog already knows the Threads media ID, which saves the proxy
        resolving a shortcode by paging back through recent posts. */}}
-  {{ with .Params.threads }}{{ with .id }}{{ $a = printf "%s data-threads-id=%q" $a (printf "%v" .) }}{{ end }}{{ end }}
-  {{ with $mastodonList }}{{ $a = printf "%s data-mastodon=%q" $a (delimit . ",") }}{{ end }}
-  {{ with $blueskyList }}{{ $a = printf "%s data-bluesky=%q" $a (delimit . ",") }}{{ end }}
+  {{ with $auto.threadsId }}{{ $a = printf "%s data-threads-id=%q" $a . }}{{ end }}
+  {{ with $auto.mastodon }}{{ $a = printf "%s data-mastodon=%q" $a (delimit . ",") }}{{ end }}
+  {{ with $auto.bluesky }}{{ $a = printf "%s data-bluesky=%q" $a (delimit . ",") }}{{ end }}
 
   {{/* replies-auto, not replies-data: the shortcode owns that class, and one
        element per source is what lets the script merge them per platform rather

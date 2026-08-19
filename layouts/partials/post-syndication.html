@@ -1,0 +1,95 @@
+{{/* Where a post was syndicated, from two sources merged per platform.
+     Returns a dict:
+
+       auto     {threads, threadsId, mastodon, bluesky} — what Micro.blog
+                itself recorded when the post was cross-posted, read straight
+                from .Params. This is exactly what comments.html has always
+                rendered as the replies-auto hidden element.
+       merged   same keys, but a platform named by the {{< replies >}}
+                shortcode (via .Page.Store, key "replies") wins for that
+                platform alone; "none"/"off"/"false" retires it, and saying
+                nothing about a platform leaves auto's value in place. This is
+                the same rule comments.js applies client-side, moved into
+                Hugo for page.json.json, where a client-side merge can't run.
+
+     Callers that care about `merged` must run after .Content has rendered:
+     the store is only populated once the {{< replies >}} shortcode (if the
+     post has one) has actually run.
+
+       .Params.threads.url   .Params.threads.id (media ID)
+       .Params.mastodon.hostname / .username / .id
+       .Params.bluesky.link
+*/}}
+
+  {{/* --- Threads --- */}}
+  {{ $threadsList := slice }}
+  {{ with .Params.comments_threads }}
+    {{ range split . "," }}{{ $threadsList = $threadsList | append (trim . " ") }}{{ end }}
+  {{ else }}
+    {{ with .Params.threads }}
+      {{ $u := "" }}
+      {{ with .url }}{{ $u = . }}{{ end }}
+      {{ if and (not $u) .username .id }}
+        {{ $u = printf "https://www.threads.com/@%s/post/%v" .username .id }}
+      {{ end }}
+      {{ with $u }}{{ $threadsList = $threadsList | append . }}{{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{/* --- Mastodon --- */}}
+  {{ $mastodonList := slice }}
+  {{ with .Params.comments_mastodon }}
+    {{ range split . "," }}{{ $mastodonList = $mastodonList | append (trim . " ") }}{{ end }}
+  {{ else }}
+    {{ with .Params.mastodon }}
+      {{ if and .hostname .username .id }}
+        {{ $mastodonList = $mastodonList | append (printf "https://%s/@%s/%v" .hostname .username .id) }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{/* --- Bluesky --- */}}
+  {{ $blueskyList := slice }}
+  {{ with .Params.comments_bluesky }}
+    {{ range split . "," }}{{ $blueskyList = $blueskyList | append (trim . " ") }}{{ end }}
+  {{ else }}
+    {{/* Micro.blog's docs list .link, its own Blank theme reads .url — accept
+         either, and fall back to building one from handle + id. */}}
+    {{ with .Params.bluesky }}
+      {{ $u := "" }}
+      {{ with .link }}{{ $u = . }}{{ end }}
+      {{ if not $u }}{{ with .url }}{{ if hasPrefix . "http" }}{{ $u = . }}{{ end }}{{ end }}{{ end }}
+      {{ if and (not $u) .handle .id }}
+        {{ $u = printf "https://bsky.app/profile/%s/post/%v" .handle .id }}
+      {{ end }}
+      {{ with $u }}{{ $blueskyList = $blueskyList | append . }}{{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{/* Micro.blog already knows the Threads media ID, which saves the proxy
+       resolving a shortcode by paging back through recent posts. */}}
+  {{ $threadsId := "" }}
+  {{ with .Params.threads }}{{ with .id }}{{ $threadsId = printf "%v" . }}{{ end }}{{ end }}
+
+  {{ $auto := dict "threads" $threadsList "threadsId" $threadsId "mastodon" $mastodonList "bluesky" $blueskyList }}
+
+{{ $store := .Store.Get "replies" | default dict }}
+{{ $off := slice "none" "off" "false" }}
+{{ $splitList := "" }}{{/* helper pattern: split a raw comma string to a slice */}}
+
+{{ $merged := dict }}
+{{ range $k := slice "threads" "mastodon" "bluesky" }}
+  {{ $declared := trim (index $store $k | default "") " " }}
+  {{ $list := index $auto $k }}
+  {{ if $declared }}
+    {{ if in $off (lower $declared) }}
+      {{ $list = slice }}
+    {{ else }}
+      {{ $list = slice }}
+      {{ range split $declared "," }}{{ with trim . " " }}{{ $list = $list | append . }}{{ end }}{{ end }}
+    {{ end }}
+  {{ end }}
+  {{ $merged = merge $merged (dict $k $list) }}
+{{ end }}
+{{ $mergedId := or (trim (index $store "threadsId" | default "") " ") $auto.threadsId }}
+{{ return (dict "auto" $auto "merged" (merge $merged (dict "threadsId" $mergedId))) }}

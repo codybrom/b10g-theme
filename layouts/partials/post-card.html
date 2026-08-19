@@ -1,0 +1,104 @@
+{{/* One derivation for everything the OG card and the social meta tags say
+     about a post. Returns a dict; social-meta.html and page.json.json both
+     read it, so the card and the tags can never disagree.
+
+       label      post-label.html's name for the post
+       headline   card's top tier; "" means untitled hero layout
+       body       card's second tier (or hero text); capped at 500 chars —
+                   a payload-safety limit bounding JSON size and render cost,
+                   not the card's visual truncation. The card's actual clamp
+                   is line-count based (satori lineClamp), applied Worker-side
+                   in b10g-api/src/og/card.ts; this template has no way to
+                   know how many lines the text will take.
+       summary    the og:description chain, ≤300 chars
+       image      photo param > first body <img> > "" (never the shipped square)
+       imageAlt   alt text when image came from the body
+       isFallback true when the post has no image of its own
+       kind       "post" (titled) | "note"
+       v          8 hex chars of md5(headline + "\n" + body) — the card URL's
+                  cache-buster; an edit that changes the card changes v */}}
+
+{{/* Description, from Micro.blog's own fields only:
+       1. `description` front matter, if ever set
+       2. `summary` — a real per-post field Micro.blog stores and exposes (edit it in
+          the post editor); empty by default, so setting it there wins automatically
+       3. the post's own summary, which honors <!--more-->
+       4. the site description
+     No theme-side lookup table: anything authored lives in Micro.blog, not here. */}}
+{{ $desc := "" }}
+{{ with .Description }}{{ $desc = . }}{{ end }}
+{{ if not $desc }}{{ with .Params.summary }}{{ $desc = . }}{{ end }}{{ end }}
+{{ if not $desc }}{{ with .Summary }}{{ $desc = . | plainify | htmlUnescape }}{{ end }}{{ end }}
+{{ if not $desc }}{{ $desc = .Site.Params.description }}{{ end }}
+{{ $desc = $desc | plainify | htmlUnescape | chomp }}
+{{/* Capped for the platforms that show a description at all. truncate rather
+     than substr: it cuts on a word boundary instead of mid-word, appends the
+     ellipsis itself, counts runes where len counts bytes, and leaves anything
+     already short of the cap completely alone — so it needs no length guard. */}}
+{{ $desc = $desc | truncate 300 "…" }}
+
+{{/* Image: Micro.blog photo param > first image in the body > "" (the shipped
+     square fallback is social-meta's call, not this partial's). */}}
+{{ $img := "" }}
+{{ with .Params.photos }}{{ $img = index . 0 }}{{ end }}
+{{ if not $img }}{{ with .Params.images }}{{ $img = index . 0 }}{{ end }}{{ end }}
+{{/* The first <img> in the body, held on to so the alt can be read off the same
+     tag as the src. Matching the tag a second time by its URL does not work: a
+     src is full of regex metacharacters. */}}
+{{ $firstImg := "" }}
+{{ with findRE `<img[^>]+>` .Content 1 }}{{ $firstImg = index . 0 }}{{ end }}
+
+{{ if not $img }}
+  {{/* Two-step extraction: Go's `.` does not cross newlines, and Micro.blog/Lume
+       emit <img> tags whose alt text wraps onto its own line, so a single
+       replaceRE over the whole tag silently returns the tag instead of the src. */}}
+  {{ with $firstImg }}
+    {{ with findRE `src="[^"]*"` . 1 }}
+      {{ $img = strings.TrimSuffix `"` (strings.TrimPrefix `src="` (index . 0)) }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+{{/* Alt text, read off the same tag the src came from — only when that is where
+     the card image came from, since a photo param has nothing to do with the
+     body. */}}
+{{ $imgAlt := "" }}
+{{ with $firstImg }}
+  {{ if strings.Contains . $img }}
+    {{ with findRE `alt="[^"]*"` . 1 }}
+      {{ $imgAlt = strings.TrimSuffix `"` (strings.TrimPrefix `alt="` (index . 0)) | htmlUnescape }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+{{ $label := partial "post-label.html" . }}
+{{ $headline := "" }}
+{{ $body := "" }}
+{{ $content := trim (printf "%s" .Content) " \n" }}
+
+{{ if .Title }}
+  {{ $headline = .Title | htmlUnescape }}
+  {{ $body = $desc | truncate 500 "…" }}
+{{ else }}
+  {{/* Link note: first block is a paragraph holding only a link. The linked
+       title is the headline; the commentary that follows is the body. This is
+       the site's most common untitled shape, and welded together it reads as
+       a run-on (post-label already does that for tabs; the card must not). */}}
+  {{ $ln := findRE `(?s)\A<p><a href="[^"]+"[^>]*>[^<]+</a></p>` $content 1 }}
+  {{ with $ln }}
+    {{ $headline = replaceRE `(?s)\A<p><a href="[^"]+"[^>]*>([^<]+)</a></p>.*` "$1" $content | htmlUnescape }}
+    {{ $rest := replaceRE `(?s)\A<p><a[^>]*>[^<]+</a></p>\s*(.*)` "$1" $content }}
+    {{ $body = $rest | plainify | htmlUnescape | chomp | truncate 500 "…" }}
+  {{ else }}
+    {{/* Hero note: the text is the card. */}}
+    {{ $body = $content | plainify | htmlUnescape | chomp | truncate 500 "…" }}
+  {{ end }}
+{{ end }}
+
+{{ $v := substr (md5 (printf "%s\n%s" $headline $body)) 0 8 }}
+
+{{ return (dict
+  "label" $label "headline" $headline "body" $body
+  "summary" $desc "image" $img "imageAlt" $imgAlt
+  "isFallback" (eq $img "") "kind" (cond (not .Title) "note" "post")
+  "v" $v) }}

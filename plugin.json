@@ -5,7 +5,7 @@
   "fields": [
     {
       "field": "params.social_api_base",
-      "label": "Comments API base URL",
+      "label": "API base URL (replies + OG cards)",
       "placeholder": "https://api.example.com"
     },
     {
@@ -71,7 +71,7 @@
     },
     {
       "field": "params.social_image",
-      "label": "Fallback social card image URL",
+      "label": "Fallback social card image URL (used when no API base is set)",
       "placeholder": "Leave blank to use the card the theme ships"
     },
     {

@@ -1,0 +1,24 @@
+{{- $content := .Content -}}
+{{- $card := partial "post-card.html" . -}}
+{{- $syn := (partial "post-syndication.html" .).merged -}}
+{{- dict
+  "url" .Permalink
+  "kind" $card.kind
+  "title" (.Title | default "")
+  "label" $card.label
+  "headline" $card.headline
+  "body" $card.body
+  "summary" $card.summary
+  "contentHtml" $content
+  "datePublished" (cond .Date.IsZero "" (.Date.Format "2006-01-02T15:04:05Z07:00"))
+  "tags" (.Params.categories | default slice)
+  "image" $card.image
+  "imageAlt" $card.imageAlt
+  "v" $card.v
+  "syndication" (dict
+    "threads" $syn.threads
+    "threadsId" $syn.threadsId
+    "mastodon" $syn.mastodon
+    "bluesky" $syn.bluesky
+    "microblog" (.Site.Params.microblog_replies | default true))
+| jsonify -}}

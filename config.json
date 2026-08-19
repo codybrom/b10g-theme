@@ -32,6 +32,7 @@
       "PodcastXML",
       "PodcastJSON",
       "Manifest"
-    ]
+    ],
+    "page": ["HTML", "JSON"]
   }
 }
