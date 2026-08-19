@@ -16,11 +16,11 @@ Everything has a default.
 
 | Setting | Notes |
 | --- | --- |
-| Comments API base URL | Proxy that fetches Threads replies. Everything else reads public APIs; without this, only Threads is skipped. |
+| Comments API base URL | The [b10g-api](https://github.com/codybrom/b10g-api) Worker: fetches and merges every platform's replies server-side, and generates OG cards for posts with no image of their own. Without this, no replies render for any platform, and cards without a picture fall back to the shipped square mark. |
 | Masthead tagline | Sits beside the wordmark. Keep it short. |
 | Elsewhere links | Your profiles, as `Title\|URL` separated by commas. Micro.blog has no multi-line setting field, so one line is all you get. The single source for identity: the rail lists them, `<link rel="me">` is built from them, and the h-card claims them as `u-url`. |
 | Posts on the home page | Default 3. |
-| Fallback social card image URL | Only for overriding. Card images come from the post's own first image, falling back to the square icon in `static/assets/img/`. |
+| Fallback social card image URL | Only used when the Comments API base URL isn't set — with it, a post with no image of its own gets a generated card instead, and this setting is ignored. Otherwise: card images come from the post's own first image, falling back to this setting, then the square icon in `static/assets/img/`. |
 | Fediverse creator | `@you@instance`, for the "More from" credit on Mastodon link cards. Needs a matching profile setting — see below. |
 | IndieWeb Webring links | Off. Tick it only after joining — see below. |
 | Profile photo, note, nickname, job title, organization, location | Feed the representative h-card. Nothing renders until at least one has a value. |
@@ -39,6 +39,8 @@ Pass `none` to retire a platform, which is how a copy that has since been delete
 
 Two hidden elements per post is therefore normal, not a bug: the shortcode emits `.replies-data`, `comments.html` emits `.replies-auto` from Micro.blog's own syndication, and `comments.js` merges them per platform into a single section.
 
+**All four platforms' replies are fetched and merged server-side, in one request.** `comments.js` no longer talks to Mastodon, Bluesky, Threads or Micro.blog directly — it sends the post's own URL to the Comments API base URL Worker and renders whatever comes back. Set that setting to get replies at all: without it, the "Reply on…" sentence above still shows (it's built client-side from the shortcode and Micro.blog's syndication params alone), but no platform's replies render.
+
 ## IndieWeb Webring
 
 Sign in at [🕸💍.ws](https://xn--sr8hvo.ws/) with your site's URL, then tick **IndieWeb Webring links** in the plug-in settings. Previous/next links appear at the foot of the rail on every page.
@@ -52,7 +54,7 @@ The theme does neither. The links are also the only ones on that host it emits: 
 
 ## Link cards
 
-Open Graph and Twitter tags are built from the post itself — Micro.blog injects none of its own. The card image is the post's first image; a post with no picture falls back to a **square** icon, never the wide card, because Mastodon picks its layout from the image's own dimensions (`largeImage = card.width > card.height`) and a landscape stand-in turns every text post into a banner that says nothing.
+Open Graph and Twitter tags are built from the post itself — Micro.blog injects none of its own. The card image is the post's first image where it has one. A post with no picture gets a **generated 1200×630 card** instead — its title and opening text, drawn by the Comments API base URL Worker (`b10g-api/src/og/`) — as long as that setting is configured. Without it, the card falls back to a **square** icon, never the wide layout, because Mastodon picks its layout from the image's own dimensions (`largeImage = card.width > card.height`) and a landscape stand-in turns every text post into a banner that says nothing.
 
 **Fediverse creator**, for the "More from @you" row under a Mastodon link card. On Micro.blog this needs no setting — the platform injects a `rel=me` link to your profile on every page, and the handle is read out of it as `@username@micro.blog`. (Not from a param: Micro.blog's own themes use `.Site.Author.username`, which Hugo removed in 0.124 and which does not evaluate on the 0.158 the platform pins.) Set the field to name a different account.
 
@@ -91,7 +93,17 @@ Edit the file to change the policy; every group carries the same signal, so chan
 
 **It only appears on Micro.blog.** Hugo ignores `outputs` in a *theme's* config — Micro.blog is the exception, because it applies a theme's `config.json` over the site's config rather than merging it as a theme. `head.html` therefore declares the link only when the output format is actually enabled, so a plain Hugo install gets no file and no link pointing at one. To switch it on for an ordinary Hugo site, copy `mediaTypes` and `outputFormats` out of `config.json` into your own config and add `Manifest` to `outputs.home`.
 
-**One warning about that `outputs` list.** Setting it replaces Micro.blog's rather than adding to it — Hugo replaces arrays on merge — so `config.json` has to restate all ten of Micro.blog's home outputs alongside `Manifest`. If the platform ever adds an eleventh, this theme will silently stop generating it until the list is updated. That list is the only reason the file is not empty.
+**One warning about that `outputs` list.** Setting it replaces Micro.blog's rather than adding to it — Hugo replaces arrays on merge — so `config.json` has to restate all ten of Micro.blog's home outputs alongside both custom ones this theme adds, `Manifest` and `PostsIndex` (the post index, below). If the platform ever adds an eleventh of its own, this theme will silently stop generating it until the list is updated. That list is the only reason the file is not empty.
+
+## The post index (`posts.json`)
+
+Generated by `layouts/index.postsindex.json`, a second custom output format on `outputs.home` — same mechanism as the manifest above, added later. It's a single JSON array, one entry per page, carrying each post's card text, image and syndication data: the same derivations `post-card.html` and `post-syndication.html` already produce for the meta tags and the replies section, read back rather than recomputed.
+
+**Nothing in this repo reads it.** It exists for [b10g-api](https://github.com/codybrom/b10g-api) — the Worker fetches `posts.json` once per request and looks up the entry for whichever path it was asked about, to build both the JSON mirror at `api.b10g.xyz/<path>/` and the generated OG cards described under [Link cards](#link-cards). See that repo's README for the consuming side; this is only the theme's half.
+
+**An earlier design emitted this per-post instead**, beside each post's own HTML (`outputs.page`). That never worked — Micro.blog merges a plug-in's `outputs.home` formats into the site but not `outputs.page`, confirmed by every `<permalink>/index.json` 404ing live once it was pushed. See "outputs.home is merged… outputs.page is not" in the root `NOTES.md`. The site-wide `posts.json` above, via `outputs.home`, is the design that shipped.
+
+**The two repos agree on the URL, not by name.** `config.json` sets `"baseName": "posts"` for the `PostsIndex` format here; `b10g-api/src/mirror/resolve.ts` hardcodes `${origin}/posts.json` there. If this `baseName` ever changes, that hardcoded URL has to change with it — there's no other place the connection between them is declared.
 
 ## Reply contexts
 

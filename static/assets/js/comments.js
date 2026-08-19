@@ -38,42 +38,16 @@ class SocialReplies extends HTMLElement {
       timeStyle: "short",
     });
 
-    const mastodonUrls = toURLs(
-      splitAttr(this.getAttribute("mastodon") || this.getAttribute("src")),
-    );
-    const blueskyUrls = toURLs(splitAttr(this.getAttribute("bluesky")));
-    const threadsRaw = splitAttr(this.getAttribute("threads"));
-    // Media IDs, positionally aligned with the threads URLs. Resolving a shortcode
-    // instead costs the proxy a walk through recent posts, which reaches only a few
-    // hundred and so quietly stops finding older ones as the account keeps posting.
-    const threadsIds = splitAttr(this.getAttribute("threads-id"));
-
-    const threadsEntries = threadsRaw.map((t, i) =>
-      parseThreadsRef(t, threadsIds[i] || null),
-    );
-    const threadsOwner =
-      this.getAttribute("threads-owner") || threadsEntries[0]?.owner;
-
     // Fresh arrays each connect: connectedCallback runs again if the element
     // is ever re-attached, and stale replies must not double up.
     this.comments = { mastodon: [], bluesky: [], threads: [], microblog: [] };
 
-    // Micro.blog knows every post on this blog, so its conversation needs no
-    // per-post configuration — just the permalink.
-    const microblogUrl = this.getAttribute("microblog-url");
-
-    // allSettled, not all: a single rejected fetch used to skip the refresh
-    // below and leave the section reading "Loading replies…" for good. A post
-    // deleted on one service is exactly that case, and it is the one where the
-    // others still have something to show.
-    await Promise.allSettled([
-      ...mastodonUrls.map((u) => this.#fetchMastodon(u)),
-      ...blueskyUrls.map((u) => this.#fetchBluesky(u)),
-      ...threadsEntries.map((e) =>
-        this.#fetchThreads(e.shortcode, threadsOwner, e.mediaId),
-      ),
-      microblogUrl ? this.#fetchMicroblog(microblogUrl) : null,
-    ]);
+    const apiBase = this.getAttribute("api-base") || "";
+    const postUrl = this.getAttribute("microblog-url") || location.href;
+    if (apiBase) {
+      const path = new URL(postUrl, location.href).pathname;
+      await this.#fetchMirror(`${apiBase}${path}`);
+    }
 
     this.dispatchEvent(
       new CustomEvent("replies:sources", {
@@ -83,6 +57,34 @@ class SocialReplies extends HTMLElement {
     );
 
     this.refresh();
+  }
+
+  /** One request replaces the per-platform pipelines: the Worker fetches and
+   *  normalizes every source (see b10g-api/src/mirror/), and this component
+   *  keeps what it always owned — merging, threading, author promotion and
+   *  rendering. Without an api-base there is nothing to fetch: the Worker is
+   *  the replies backend now, not just the Threads proxy. */
+  async #fetchMirror(mirrorUrl) {
+    try {
+      const data = await fetchJSON(mirrorUrl, {
+        ttl: Number(this.getAttribute("cache") || 0),
+      });
+      if (!data) return;
+      const revive = (r) => ({
+        ...r,
+        createdAt: new Date(r.createdAt),
+        replies: r.replies.map(revive),
+      });
+      for (const [k, list] of Object.entries(data.replies || {})) {
+        if (this.comments[k]) this.comments[k].push(...list.map(revive));
+      }
+      for (const [k, s] of Object.entries(data.stats || {}))
+        this.postStats[k] = s;
+      for (const [k, s] of Object.entries(data.sources || {})) {
+        if (s === "missing") this.missingSources.add(k);
+      }
+      this.authorAvatar = data.authorAvatar || this.authorAvatar;
+    } catch {}
   }
 
   refresh() {
@@ -193,281 +195,6 @@ class SocialReplies extends HTMLElement {
       // Before the sentence: what the post collected, then how to add to it.
       header.insertBefore(p, header.querySelector("p"));
     }
-  }
-
-  // A service can hold several copies of the post; likes and reposts accumulate
-  // across them, and the URL kept is the first to arrive — see #renderPostStats.
-  #tallyPostStats(key, url, likes, reposts) {
-    const prev = this.postStats[key];
-    this.postStats[key] = {
-      url: prev?.url || url,
-      likes: (prev?.likes || 0) + (likes || 0),
-      reposts: (prev?.reposts || 0) + (reposts || 0),
-      source: key,
-    };
-  }
-
-  // Micro.blog's conversation feed is public and CORS-enabled, but keyed by numeric
-  // post ID rather than URL. conversation.js resolves a permalink to that ID, so read
-  // it from there instead of requiring an ID to be configured on every post.
-  async #fetchMicroblog(postUrl) {
-    try {
-      const res = await fetch(
-        `https://micro.blog/conversation.js?url=${encodeURIComponent(postUrl)}`,
-      );
-      if (!res.ok) {
-        this.missingSources.add("microblog");
-        return;
-      }
-      const match = (await res.text()).match(/post_id\s*=\s*(\d+)/);
-      if (!match) return;
-      const postId = match[1];
-
-      // Replying means signing in, and Micro.blog accepts three identities for it.
-      // Sending everyone to /mb assumed a Micro.blog account; a reader with only a
-      // Mastodon or Bluesky one would land on a sign-in they cannot complete, so
-      // all three are offered and the reader picks.
-      const signInUrl = (slug) =>
-        `https://micro.blog/account/comments/${postId}/${slug}?url=${encodeURIComponent(postUrl)}`;
-      this.postStats.microblog = {
-        url: signInUrl("mb"),
-        replyOptions: [
-          { key: "mastodon", name: "Mastodon", url: signInUrl("mastodon") },
-          { key: "bluesky", name: "Bluesky", url: signInUrl("bluesky") },
-          { key: "microblog", name: "Micro.blog", url: signInUrl("mb") },
-        ],
-        source: "microblog",
-      };
-
-      const data = await fetchJSON(
-        `https://micro.blog/posts/conversation?id=${postId}`,
-        { ttl: Number(this.getAttribute("cache")) || 60 },
-      );
-      if (!data?.items) return;
-
-      const mine = this.getAttribute("microblog-username");
-
-      // The feed includes the post being replied to; drop it. Replies carry no
-      // parent pointers, so this list is flat rather than threaded.
-      for (const item of data.items) {
-        if (String(item.id) === postId) continue;
-        const username = item.author?._microblog?.username || "";
-        this.comments.microblog.push({
-          id: `mb-${item.id}`,
-          likedByAuthor: false,
-          isMine: !!mine && username === mine,
-          source: "microblog",
-          url: item.url,
-          parent: null,
-          createdAt: new Date(item.date_published),
-          content: item.content_html || escapeHtml(item.content_text || ""),
-          author: {
-            name: item.author?.name || `@${username}`,
-            handle: username ? `@${username}` : "",
-            url: item.author?.url || "",
-            avatar: item.author?.avatar || "",
-            alt: item.author?.name || username,
-          },
-          boosts: 0,
-          likes: 0,
-          replies: [],
-        });
-      }
-    } catch {}
-  }
-
-  async #fetchThreads(shortcode, owner, mediaId) {
-    try {
-      const apiBase = this.getAttribute("api-base") || "";
-      if (!apiBase) return; // no proxy configured: skip Threads replies
-      // Always send the shortcode so the original Pages Functions backend still
-      // works; additionally send the media ID when one is known, which the Worker
-      // backend prefers to skip paginating the Threads API. Sending both keeps the
-      // component compatible with either deployment.
-      const params = new URLSearchParams({ shortcode });
-      if (mediaId) params.set("media_id", mediaId);
-      const res = await fetch(`${apiBase}/api/threads-comments?${params}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const replies = data.replies || data;
-
-      if (data.stats) {
-        this.#tallyPostStats(
-          "threads",
-          this.getAttribute("threads")?.split(",")[0]?.trim(),
-          data.stats.likes,
-          (data.stats.reposts || 0) + (data.stats.quotes || 0),
-        );
-      }
-
-      // Build a tree from the flat reply list using replied_to.
-      // Named rootId, not mediaId: the request-side media ID is already bound
-      // above, and redeclaring it here is a fatal parse error for the module.
-      const rootId = data.mediaId;
-      const commentMap = new Map();
-
-      for (const r of replies.filter((r) => r.hide_status !== "HIDDEN")) {
-        commentMap.set(r.id, {
-          id: r.id,
-          likedByAuthor: false,
-          isMine: !!owner && r.username === owner,
-          isVerified: !!r.is_verified,
-          source: "threads",
-          url: r.permalink || `https://www.threads.net/@${r.username}`,
-          parent: r.replied_to?.id || null,
-          createdAt: new Date(r.timestamp),
-          content:
-            escapeHtml(r.text || "") +
-            (r.media_type && r.media_type !== "TEXT_POST"
-              ? ` <a href="${r.permalink}" class="comment-media-link">[See original for attached media]</a>`
-              : ""),
-          author: {
-            name: `@${r.username}`,
-            handle: "",
-            url: `https://www.threads.net/@${r.username}`,
-            avatar: r.profile_picture_url || "",
-            alt: r.username,
-          },
-          boosts: 0,
-          likes: 0,
-          replies: [],
-        });
-      }
-
-      for (const comment of commentMap.values()) {
-        const parentComment = commentMap.get(comment.parent);
-        if (parentComment) {
-          parentComment.replies.push(comment);
-        }
-      }
-
-      const topLevel = Array.from(commentMap.values()).filter(
-        (c) => !c.parent || c.parent === rootId || !commentMap.has(c.parent),
-      );
-
-      this.comments.threads.push(...topLevel);
-    } catch {}
-  }
-
-  async #fetchBluesky(url) {
-    const { pathname } = url;
-
-    // Micro.blog records Bluesky syndication with a DID in place of the handle, and
-    // a DID contains colons. A null match here would throw on the destructure, and
-    // because this runs inside a Promise.all that would take Threads and Mastodon
-    // down with it rather than just skipping Bluesky.
-    const match = pathname.match(/\/profile\/([\w.:]+)\/post\/(\w+)/);
-
-    if (!match) {
-      return;
-    }
-
-    const [, actor, rkey] = match;
-
-    const options = { ttl: Number(this.getAttribute("cache") || 0) };
-
-    // A DID is already what resolveHandle returns; passing one back to it is a 400,
-    // not a no-op.
-    let did = actor;
-
-    if (!actor.startsWith("did:")) {
-      const didData = await fetchJSON(
-        `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${actor}`,
-        options,
-      );
-      did = didData.did;
-    }
-
-    const uri = `at://${did}/app.bsky.feed.post/${rkey}`;
-
-    const threadData = await fetchJSON(
-      `https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=${uri}`,
-      options,
-    );
-
-    const threadPost = threadData?.thread?.post;
-    if (!threadPost) this.missingSources.add("bluesky");
-    const authorDid = threadPost?.author?.did;
-    this.authorAvatar = this.authorAvatar || threadPost?.author?.avatar;
-
-    if (threadPost) {
-      this.#tallyPostStats(
-        "bluesky",
-        url,
-        threadPost.likeCount,
-        threadPost.repostCount,
-      );
-    }
-
-    const bskyComments = dataFromBluesky(threadData);
-
-    if (authorDid) {
-      await Promise.all(
-        flatComments(bskyComments).map(async (comment) => {
-          const data = await fetchJSON(
-            `https://public.api.bsky.app/xrpc/app.bsky.feed.getLikes?uri=${encodeURIComponent(comment.atUri)}&limit=100`,
-          );
-          if (data?.likes?.some((l) => l.actor.did === authorDid)) {
-            comment.likedByAuthor = true;
-          }
-        }),
-      );
-    }
-
-    this.comments.bluesky.push(...bskyComments);
-  }
-
-  async #fetchMastodon(url) {
-    const { origin, pathname } = url;
-
-    // Destructured straight off the match before, which threw on any URL that
-    // did not end in digits — the guard below could never run.
-    const id = pathname.match(/\/(\d+)$/)?.[1];
-    if (!id) return;
-
-    const options = { ttl: Number(this.getAttribute("cache") || 0) };
-    const token = this.getAttribute("token");
-    if (token) options.headers = { Authorization: `Bearer ${token}` };
-
-    const user = pathname.split("/")[1];
-    const author = `${user}@${url.hostname}`;
-
-    const [contextData, statusData] = await Promise.all([
-      fetchJSON(new URL(`${origin}/api/v1/statuses/${id}/context`), options),
-      fetchJSON(new URL(`${origin}/api/v1/statuses/${id}`), options),
-    ]);
-
-    // A status that has been deleted returns nothing here, which is the only
-    // signal that the copy this post links to is gone.
-    if (!statusData) this.missingSources.add("mastodon");
-
-    if (statusData) {
-      this.#tallyPostStats(
-        "mastodon",
-        url,
-        statusData.favourites_count,
-        statusData.reblogs_count,
-      );
-    }
-
-    const comments = dataFromMastodon(contextData, author);
-    const topLevel = comments.filter((comment) => comment.parent === id);
-
-    const apiBase = this.getAttribute("api-base") || "";
-    const favoritedIds = apiBase
-      ? await fetchJSON(
-          `${apiBase}/api/mastodon-favorites?origin=${encodeURIComponent(origin)}&id=${id}`,
-        )
-      : null;
-    if (Array.isArray(favoritedIds) && favoritedIds.length) {
-      for (const comment of flatComments(topLevel)) {
-        if (favoritedIds.includes(comment.id)) {
-          comment.likedByAuthor = true;
-        }
-      }
-    }
-
-    this.comments.mastodon.push(...topLevel);
   }
 
   render(container, replies, depth = 0) {
@@ -655,37 +382,6 @@ function splitAttr(val) {
     : [];
 }
 
-// The Mastodon and Bluesky attributes are fed straight to the URL constructor,
-// which throws on anything that isn't a valid absolute address — a shortcode
-// that carried a Markdown link or a stray word for one reply, say. Building the
-// list in the map meant that throw escaped connectedCallback before any fetch
-// ran, so one malformed entry left every platform's replies unrendered. Parse
-// them up front and drop the bad ones, the same per-source resilience the
-// allSettled fetch already has (and parseThreadsRef's own try/catch).
-function toURLs(raws) {
-  return raws
-    .map((u) => {
-      try {
-        return new URL(u);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
-}
-
-/** A Threads reference off the shortcode attribute: either a post URL, whose
- *  path names the owner and shortcode, or a bare shortcode on its own. */
-function parseThreadsRef(ref, mediaId) {
-  try {
-    const m = new URL(ref).pathname.match(
-      /^\/@([\w.]+)\/post\/([A-Za-z0-9_-]+)/,
-    );
-    if (m) return { shortcode: m[2], owner: m[1], mediaId };
-  } catch {}
-  return { shortcode: ref, owner: null, mediaId };
-}
-
 /**
  * An identity for a reply that survives being spelled differently.
  *
@@ -720,10 +416,6 @@ function replyKey(url) {
   }
 }
 
-function flatComments(comments) {
-  return comments.flatMap((c) => [c, ...flatComments(c.replies)]);
-}
-
 function promoteAuthorReplies(comments, inAuthorChain = true) {
   const result = [];
   for (const comment of comments) {
@@ -739,52 +431,6 @@ function promoteAuthorReplies(comments, inAuthorChain = true) {
     }
   }
   return result;
-}
-
-function trimLeadingMention(html, author) {
-  const username = author.split("@")[1];
-  if (!username) return html;
-  // Mastodon wraps mentions in <span class="h-card"><a ...>@<span>username</span></a></span>
-  // Also handles plain-text @username or @username@domain at the start
-  return html
-    .replace(
-      new RegExp(
-        `^(<p[^>]*>)?\\s*(?:<span[^>]*>\\s*<a[^>]+>@<span>${username}</span></a>\\s*</span>|@${username}(?:@[\\w.-]+)?)\\s*`,
-        "i",
-      ),
-      "$1",
-    )
-    .trim();
-}
-
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-/** Swap Mastodon's `:shortcode:` markers for the instance's custom emoji.
- *  One pass, not one per emoji: replacing by string substitutes only the first
- *  match, so the same emoji used twice left the second reading `:blobcat:`. */
-function formatEmojis(html, emojis) {
-  if (!html || !emojis?.length) return html;
-
-  const byShortcode = new Map(emojis.map((e) => [e.shortcode, e]));
-
-  return html.replace(/:([a-zA-Z0-9_-]+):/g, (marker, shortcode) => {
-    const emoji = byShortcode.get(shortcode);
-    if (!emoji) return marker;
-    // Animated file as the source, still one as the img, so a reader who asked
-    // their system not to animate gets the still without a second request.
-    return (
-      "<picture>" +
-      `<source srcset="${emoji.url}" media="(prefers-reduced-motion: no-preference)">` +
-      `<img src="${emoji.static_url}" alt="${marker}" title="${marker}" width="16" height="16">` +
-      "</picture>"
-    );
-  });
 }
 
 /** GET some JSON, holding a copy for `cache` seconds. The copy doubles as the
@@ -833,102 +479,6 @@ async function fetchJSON(url, options = {}) {
   } catch {
     return held ? held.json() : undefined;
   }
-}
-
-/** Mastodon's flat `context.descendants` into the nested shape we render.
- *  Indexed first, linked after: the API returns creation order, so a reply can
- *  arrive before its parent. Anything whose parent is absent stays top-level. */
-function dataFromMastodon(data, author) {
-  const byId = new Map();
-
-  for (const status of data?.descendants || []) {
-    // Followers-only and direct statuses are visible to the author's token and
-    // are not ours to republish.
-    if (status.visibility !== "public") continue;
-
-    const account = status.account;
-    const handle = `@${account.username}@${new URL(account.url).hostname}`;
-
-    byId.set(status.id, {
-      id: status.id,
-      source: "mastodon",
-      url: status.url,
-      parent: status.in_reply_to_id,
-      createdAt: new Date(status.created_at),
-      isMine: handle === author,
-      likedByAuthor: Boolean(status.favourited),
-      // Already HTML, sanitized by the instance that served it.
-      content: trimLeadingMention(
-        formatEmojis(status.content, status.emojis),
-        author,
-      ),
-      author: {
-        name: formatEmojis(account.display_name, account.emojis),
-        handle,
-        url: account.url,
-        avatar: account.avatar_static,
-        alt: account.display_name,
-      },
-      boosts: status.reblogs_count,
-      likes: status.favourites_count,
-      replies: [],
-    });
-  }
-
-  for (const comment of byId.values()) {
-    byId.get(comment.parent)?.replies.push(comment);
-  }
-
-  return [...byId.values()];
-}
-
-function dataFromBluesky(data) {
-  const root = data?.thread;
-  // A deleted, blocked or unavailable post still answers 200 — as notFoundPost
-  // or blockedPost, which carry no `post` at all. Reading through one threw a
-  // TypeError that took the whole replies section with it.
-  if (!root?.post) return [];
-  return blueskyReplies(root.replies, root.post.cid, root.post.author.did);
-}
-
-/** One level of a Bluesky thread and every level beneath it. `record.text` is
- *  plain text where Mastodon sends sanitised HTML, and it reaches innerHTML
- *  further down — hence the escape. */
-function blueskyReplies(nodes, parentCid, authorDid) {
-  const out = [];
-
-  for (const node of nodes || []) {
-    // The same not-found and blocked shapes as the root, one level down.
-    const post = node?.post;
-    if (!post) continue;
-
-    const handle = post.author.handle;
-    const rkey = post.uri.split("/").pop();
-
-    out.push({
-      id: post.cid,
-      atUri: post.uri,
-      source: "bluesky",
-      url: `https://bsky.app/profile/${handle}/post/${rkey}`,
-      parent: parentCid,
-      createdAt: new Date(post.record.createdAt),
-      isMine: post.author.did === authorDid,
-      likedByAuthor: false,
-      content: escapeHtml(post.record.text || ""),
-      author: {
-        name: post.author.displayName,
-        handle,
-        url: `https://bsky.app/profile/${handle}`,
-        avatar: post.author.avatar,
-        alt: post.author.displayName,
-      },
-      boosts: post.repostCount,
-      likes: post.likeCount,
-      replies: blueskyReplies(node.replies, post.cid, authorDid),
-    });
-  }
-
-  return out;
 }
 
 customElements.define("social-replies", SocialReplies);
