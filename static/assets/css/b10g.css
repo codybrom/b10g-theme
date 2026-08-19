@@ -1582,6 +1582,93 @@ blockquote.toot {
   text-decoration: underline;
 }
 
+/* YouTube card — emitted by layouts/_default/_markup/render-link.html for a
+   YouTube link that stands alone on its own line, with no link text of its own.
+
+   The card is the poster and nothing else: no title, channel or counts. What
+   the server renders is derivable from the video id, so it is a working poster
+   and link with no JS at all, which is what an RSS reader gets. youtube.js then
+   names it from oEmbed and turns the poster into a click-to-play facade. The
+   states are additive: .is-ready once the click is wired, .is-loaded once
+   oEmbed answered, .is-playing once the iframe is in.
+
+   Note that .post-body figure is (0,1,1), the same as figure.youtube, and is
+   declared later in this file: it wins that tie. Anything here that needs to
+   override it has to be set on a child or carry a heavier selector. */
+figure.youtube {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  margin: 2em 0;
+}
+
+/* aspect-ratio rather than a padding box: the poster is hqdefault, a 16:9 frame
+   letterboxed into 480x360, and object-fit: cover crops the bars back off. The
+   ratio is on the anchor so the frame is the right shape before the image
+   arrives and nothing below it jumps when it does. */
+.youtube-poster {
+  aspect-ratio: 16 / 9;
+  background: var(--raised);
+  border: var(--rule);
+  border-radius: var(--radius);
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
+.youtube-poster img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* Drawn in CSS so it exists only where the stylesheet does — a feed reader gets
+   an unadorned thumbnail rather than an empty box sitting on top of it. Hidden
+   until .is-ready for the same reason lightbox.js sets its marker from script:
+   nothing should offer to play in place until something can. */
+.youtube-play {
+  background: rgb(0 0 0 / 80%);
+  border-radius: 12px;
+  height: 48px;
+  inset: 50% auto auto 50%;
+  opacity: 0;
+  position: absolute;
+  transition:
+    background 0.15s ease,
+    scale 0.15s ease;
+  translate: -50% -50%;
+  width: 68px;
+}
+figure.youtube.is-ready .youtube-play {
+  opacity: 1;
+}
+.youtube-play::before {
+  border: 10px solid transparent;
+  border-left: 16px solid #fff;
+  content: "";
+  inset: 50% auto auto 50%;
+  position: absolute;
+  translate: -35% -50%;
+}
+.youtube-poster:is(:hover, :focus-visible) .youtube-play {
+  background: #f00;
+  scale: 1.05;
+}
+
+figure.youtube iframe {
+  aspect-ratio: 16 / 9;
+  border: var(--rule);
+  border-radius: var(--radius);
+  display: block;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .youtube-play {
+    transition: none;
+  }
+}
+
 /* Transparent at rest so the collapsed control reads as an icon. */
 #search .pagefind-ui__search-input {
   background: transparent;
@@ -1659,8 +1746,12 @@ body {
 
 /* .reply-context * joins .toot * for the same reason: both carry a small avatar
    at an explicit width and height, and the rule below would override both and
-   centre it as though it were an illustration. */
-.post-body img:not(.custom-emoji, .toot *, .reply-context *) {
+   centre it as though it were an illustration. .youtube * is here for the
+   opposite reason — its poster must fill the frame it is cropped into, and
+   max-height/width: auto would shrink it back to its own dimensions. Note this
+   rule is (0,2,1): :not() takes the specificity of its heaviest argument, so it
+   beats any single-class rule further down and has to be opted out of by name. */
+.post-body img:not(.custom-emoji, .toot *, .reply-context *, .youtube *) {
   height: auto;
   margin-inline: auto;
   max-height: 70vh;
@@ -1670,7 +1761,7 @@ body {
 
 .post-body > img,
 .post-body > p > img:only-child,
-.post-body figure img:not(.toot *) {
+.post-body figure img:not(.toot *, .youtube *) {
   display: block;
 }
 

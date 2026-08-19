@@ -1,0 +1,127 @@
+{{- /* Renders every markdown link in every post. Almost all of them come out of
+       the else branch below, byte-identical to what Hugo emits with no hook at
+       all — this file exists for one narrow case.
+
+       A YouTube link that stands alone on its own line, with no link text of
+       its own, becomes a video card. Written as a link rather than as an image
+       (![](https://youtu.be/…)) deliberately: Micro.blog renders the markdown
+       source in its own timeline and hands the same source to its cross-posts to
+       Mastodon, Bluesky and Threads, and none of those run this hook. Image
+       syntax pointing at a web page is a broken <img> in every one of them,
+       where a link is just a link.
+
+       That is also why the shortcode route was not taken. Whatever appears in a
+       post body has to stay legible everywhere the body travels, and the plainest
+       possible markdown is the only thing that does.
+
+       Kept in layouts/_default/_markup/ rather than layouts/_markup/ for the same
+       reason the shortcodes are not in layouts/_shortcodes/: it works on any Hugo
+       version Micro.blog might be set to. */ -}}
+
+{{- $dest := .Destination -}}
+{{- $id := "" -}}
+{{- $start := "" -}}
+
+{{- /* Same two patterns as the toot shortcode's, and for the same reason: findRE
+       tests, replaceRE extracts, because Hugo's findRE returns whole matches and
+       cannot reach a capture group. [\w-]{11} is exactly the id alphabet, and the
+       trailing (?:[^\w-].*)? pins the length so a longer token cannot match on
+       its first eleven characters. */ -}}
+{{- $long := `^https?://(?:www\.|m\.|music\.)?(?:youtube\.com|youtube-nocookie\.com)/(?:watch\?(?:[^#]*&(?:amp;)?)?v=|shorts/|live/|embed/|v/)([\w-]{11})(?:[^\w-].*)?$` -}}
+{{- $short := `^https?://(?:www\.)?youtu\.be/([\w-]{11})(?:[^\w-].*)?$` -}}
+
+{{- if findRE $long $dest 1 -}}
+  {{- $id = replaceRE $long "$1" $dest -}}
+{{- else if findRE $short $dest 1 -}}
+  {{- $id = replaceRE $short "$1" $dest -}}
+{{- end -}}
+
+{{- /* A link the author gave words to is a reference in a sentence, not a video
+       they wanted shown — every YouTube link already in this site's archive is
+       one of those. Only a URL standing as its own text is a candidate. */ -}}
+{{- $bare := and $id (eq (printf "%v" .PlainText) $dest) -}}
+
+{{- /* …and only where it stands alone on its own line. That is the line a
+       reader sees as "here is a video" rather than as a citation inside a
+       sentence, and it survives every consumer of the markdown: Micro.blog's
+       timeline, and its cross-posts to Mastodon, Bluesky and Threads, all show
+       a plain link on its own line, which is exactly right there.
+
+       Asked of the post's source, because a hook cannot ask it of itself: it is
+       handed a destination and a label and knows nothing about where on the page
+       it sits. The known cost of that is a post which both shows a video on its
+       own line and mentions the same URL bare inside a sentence — the sentence
+       would get a second card. Giving that inline mention any link text at all
+       is enough to prevent it, and every YouTube link already in this archive
+       has some. */ -}}
+{{- $alone := false -}}
+{{- if $bare -}}
+  {{- /* The three ways a URL can stand as its own link text. */ -}}
+  {{- $forms := slice $dest (printf "<%s>" $dest) (printf "[%s](%s)" $dest $dest) -}}
+  {{- range (split .Page.RawContent "\n") -}}
+    {{- if in $forms (trim . " \t\r") -}}
+      {{- $alone = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if $alone -}}
+  {{- with findRE `[?&#](?:t|start)=[0-9hms]+` $dest 1 -}}
+    {{- $start = replaceRE `^[?&#](?:t|start)=` "" (index . 0) -}}
+  {{- end -}}
+  {{- /* Everything below is derivable from the id alone, with no build-time HTTP:
+         the thumbnail is a predictable URL, so this is already a working poster
+         and link in a feed reader, where none of the JS runs. It has to be
+         hqdefault or mqdefault — those two always exist. maxresdefault is sharper
+         but 404s on older uploads, so youtube.js swaps it in only after
+         confirming it loaded.
+
+         hqdefault is 480x360: a 16:9 frame letterboxed into 4:3. object-fit:
+         cover crops the bars here; a feed reader without our stylesheet shows
+         them, which is the price of a thumbnail that cannot 404.
+
+         The poster is the whole card — no title, channel or counts — so the link
+         has to name itself or it is an image link with no accessible name.
+         youtube.js sharpens that to "Play <title>" once oEmbed answers. */ -}}
+  <figure class="youtube" data-youtube-id="{{ $id }}"{{ with $start }} data-youtube-start="{{ . }}"{{ end }}>
+    <a class="youtube-poster" href="{{ $dest | safeURL }}" rel="noopener" aria-label="Watch on YouTube">
+      <img src="https://i.ytimg.com/vi/{{ $id }}/hqdefault.jpg" alt=""
+           width="480" height="360" loading="lazy" decoding="async">
+      {{- /* Drawn entirely in CSS, so a feed reader — which gets none of it — is
+             left with a clean thumbnail rather than a stray glyph sitting under
+             the image with nothing to position it. */ -}}
+      <span class="youtube-play" aria-hidden="true"></span>
+    </a>
+  </figure>
+  {{- /* Repeated once per video in the post. Identical src, and a module
+         executes once per URL however many tags request it — the same
+         arrangement toot.html uses. */ -}}
+  <script type="module" src="{{ partial "asset.html" "js/youtube.js" }}"></script>
+{{- else -}}
+  {{- /* Hugo's built-in link rendering, reproduced. Every link on the site now
+         goes through here, so this branch must not add rel, target, or any other
+         attribute the default does not — and must not mangle a destination.
+
+         The href is assembled here and marked safe rather than interpolated
+         through Go's URL attribute context, because that context rewrites what
+         it is given: it percent-encodes characters Goldmark leaves alone — a
+         real en.wikipedia.org/wiki/Foo_(actor) link on this site came out as
+         Foo_%28actor%29 — and without safeURL it replaces anything it distrusts
+         with #ZgotmplZ, silently breaking every [x](#fn:1) style anchor.
+
+         Escaped by entity rather than by Go quoting: %q renders a destination
+         containing a double quote as a backslash-quote, which closes the
+         attribute early and lets the rest of the URL become markup. & is
+         replaced first, or it would double-escape the entities introduced after.
+
+         Written as four statements, not one pipeline: replace takes its input as
+         the FIRST argument, while a pipeline appends the piped value as the
+         LAST, so `$dest | replace "&" "&amp;"` quietly searches inside the
+         literal "&" and returns it. Chained, that collapses every href on the
+         site to ">". */ -}}
+  {{- $esc := replace $dest "&" "&amp;" -}}
+  {{- $esc = replace $esc `"` "&quot;" -}}
+  {{- $esc = replace $esc "<" "&lt;" -}}
+  {{- $esc = replace $esc ">" "&gt;" -}}
+  <a {{ printf `href="%s"` $esc | safeHTMLAttr }}{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text }}</a>
+{{- end -}}
