@@ -37,9 +37,34 @@
 {{- end -}}
 
 {{- /* A link the author gave words to is a reference in a sentence, not a video
-       they wanted shown — every YouTube link already in this site's archive is
-       one of those. Only a URL standing as its own text is a candidate. */ -}}
-{{- $bare := and $id (eq (printf "%v" .PlainText) $dest) -}}
+       they wanted shown — every YouTube link already in this archive is one of
+       those. Only a URL standing as its own text is a candidate.
+
+       That test cannot be a string comparison, because Micro.blog's editor
+       rewrites a pasted URL into a markdown link whose text is the URL shortened
+       for display: what reaches here is
+       [youtu.be/YEvLKzsEw...](https://youtu.be/YEvLKzsEwMw). The scheme is gone
+       from the label, the tail is replaced by an ellipsis, and Goldmark's
+       typographer has already turned "..." into "…" by the time .PlainText is
+       read. toot.html hit the same behaviour from the other direction.
+
+       So: strip the scheme from both sides, and accept the label either whole or
+       as an ellipsis-terminated prefix of the destination. Requiring the
+       ellipsis is what keeps a deliberate short label — [youtu.be](…) — from
+       counting as no label at all. */ -}}
+{{- $bare := false -}}
+{{- if $id -}}
+  {{- $scheme := `^https?://(www\.)?` -}}
+  {{- $ellipsis := `(\.\.\.|…)$` -}}
+  {{- $destBare := replaceRE $scheme "" $dest -}}
+  {{- $textBare := replaceRE $scheme "" (printf "%v" .PlainText) -}}
+  {{- $stripped := replaceRE $ellipsis "" $textBare -}}
+  {{- if eq $textBare $destBare -}}
+    {{- $bare = true -}}
+  {{- else if and (findRE $ellipsis $textBare 1) $stripped (hasPrefix $destBare $stripped) -}}
+    {{- $bare = true -}}
+  {{- end -}}
+{{- end -}}
 
 {{- /* …and only where it stands alone on its own line. That is the line a
        reader sees as "here is a video" rather than as a citation inside a
@@ -53,14 +78,23 @@
        own line and mentions the same URL bare inside a sentence — the sentence
        would get a second card. Giving that inline mention any link text at all
        is enough to prevent it, and every YouTube link already in this archive
-       has some. */ -}}
+       has some.
+
+       The bracket form is matched by its ends rather than by listing it, since
+       the label is whatever Micro.blog shortened the URL to. Rejecting a label
+       that itself contains "](" keeps two links on one line from reading as
+       one link alone on it. */ -}}
 {{- $alone := false -}}
 {{- if $bare -}}
-  {{- /* The three ways a URL can stand as its own link text. */ -}}
-  {{- $forms := slice $dest (printf "<%s>" $dest) (printf "[%s](%s)" $dest $dest) -}}
+  {{- $suffix := printf "](%s)" $dest -}}
   {{- range (split .Page.RawContent "\n") -}}
-    {{- if in $forms (trim . " \t\r") -}}
+    {{- $t := trim . " \t\r" -}}
+    {{- if or (eq $t $dest) (eq $t (printf "<%s>" $dest)) -}}
       {{- $alone = true -}}
+    {{- else if and (hasPrefix $t "[") (hasSuffix $t $suffix) -}}
+      {{- if not (in (strings.TrimSuffix $suffix $t) "](") -}}
+        {{- $alone = true -}}
+      {{- end -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
