@@ -10,6 +10,12 @@
       "baseName": "site",
       "isPlainText": true,
       "notAlternative": true
+    },
+    "PostsIndex": {
+      "mediaType": "application/json",
+      "baseName": "posts",
+      "isPlainText": true,
+      "notAlternative": true
     }
   },
   "module": {
@@ -31,8 +37,8 @@
       "PhotosJSON",
       "PodcastXML",
       "PodcastJSON",
-      "Manifest"
-    ],
-    "page": ["HTML", "JSON"]
+      "Manifest",
+      "PostsIndex"
+    ]
   }
 }
