@@ -13,8 +13,13 @@
      Also avoids findRESubmatch, which needs Hugo 0.111+; a comment in
      layouts/list.archivehtml.html claims Micro.blog runs 0.91.
 
+     A video card's poster is excluded: it is a still of something playable, and
+     a filmstrip thumb offers no way to play it. The whole card is dropped before
+     the images are read, so the poster cannot be reached — post-entry.html keeps
+     that card in the note's body instead.
+
      Takes a page. Renders nothing when the post has no images. */}}
-{{ $tags := findRE `<img[^>]*>` .Content }}
+{{ $photos := replaceRE `(?s)<figure class="youtube".*?</figure>` "" .Content }}{{ $tags := findRE `<img[^>]*>` $photos }}
 {{ with $tags }}
   <div class="filmstrip">
     {{ range $tag := . }}

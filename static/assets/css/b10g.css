@@ -1592,14 +1592,14 @@ blockquote.toot {
    states are additive: .is-ready once the click is wired, .is-loaded once
    oEmbed answered, .is-playing once the iframe is in.
 
-   Note that .post-body figure is (0,1,1), the same as figure.youtube, and is
-   declared later in this file: it wins that tie. Anything here that needs to
-   override it has to be set on a child or carry a heavier selector. */
+   No border, background or corner radius: a content image in this theme has
+   none of those, and a video should sit in the text the same way a picture
+   does rather than in a panel of its own. The margin matches .post-body figure,
+   which is (0,1,1) like figure.youtube and declared later in this file — it
+   wins that tie, so the two are set to agree instead of fighting. In a listing,
+   where no .post-body figure rule applies, this is the only margin there is. */
 figure.youtube {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6em;
-  margin: 2em 0;
+  margin: 1.5em 0;
 }
 
 /* aspect-ratio rather than a padding box: the poster is hqdefault, a 16:9 frame
@@ -1608,9 +1608,6 @@ figure.youtube {
    arrives and nothing below it jumps when it does. */
 .youtube-poster {
   aspect-ratio: 16 / 9;
-  background: var(--raised);
-  border: var(--rule);
-  border-radius: var(--radius);
   display: block;
   overflow: hidden;
   position: relative;
@@ -1657,8 +1654,7 @@ figure.youtube.is-ready .youtube-play {
 
 figure.youtube iframe {
   aspect-ratio: 16 / 9;
-  border: var(--rule);
-  border-radius: var(--radius);
+  border: 0;
   display: block;
   width: 100%;
 }

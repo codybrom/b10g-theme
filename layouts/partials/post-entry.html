@@ -102,14 +102,26 @@
     <a class="post-more" href="{{ .Permalink }}{{ $frag }}">Continue&nbsp;reading&nbsp;→</a>
   {{ end }}
 {{ else }}
-  {{/* A quickpost reads in full; its images come out of the flow and render as
+  {{/* A quickpost reads in full; its photos come out of the flow and render as
        a filmstrip below the text.
 
        (?s) matters: the render-image hook emits a <figure> across several lines,
        and without it `.` stops at the newline so the figure is never matched —
-       which left empty <figure> shells carrying 15px margins each. */}}
-  {{ $text := replaceRE `(?s)<figure[^>]*>.*?</figure>` "" .Content }}
-  {{ $text = replaceRE `(?s)<img[^>]*>` "" $text }}
+       which left empty <figure> shells carrying 15px margins each.
+
+       `<figure>` exactly, not `<figure[^>]*>`: a video card is a
+       <figure class="youtube"> and has to survive into the stream as a card. It
+       is not a photo, and reduced to a filmstrip thumb it becomes a picture of a
+       video that cannot be played. render-image.html emits its figure with no
+       attributes at all — every one of the figures in the live feed is a bare
+       `<figure>` — so matching the tag exactly is what separates the two.
+
+       The card's poster then has to be walked past the bare-<img> sweep on the
+       next line, which is there for the tags Micro.blog's own uploader inserts.
+       RE2 has no negative lookahead, so it is renamed out of the way and put
+       back afterwards rather than excluded in place. */}}
+  {{ $text := replaceRE `(?s)<figure>.*?</figure>` "" .Content }}{{ $text = replaceRE `(<a class="youtube-poster"[^>]*>\s*)<img` "${1}<ytposter" $text }}
+  {{ $text = replaceRE `(?s)<img[^>]*>` "" $text }}{{ $text = replaceRE `<ytposter` "<img" $text }}
   {{ $text = replaceRE `(?s)<p>\s*</p>` "" $text }}
   <div class="post-excerpt body e-content post-body-note">
     {{- partial "scope-ids.html" (dict "html" $text "page" .) | safeHTML -}}
