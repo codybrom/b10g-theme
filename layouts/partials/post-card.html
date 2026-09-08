@@ -4,8 +4,9 @@
 
        label      post-label.html's name for the post
        headline   card's top tier; "" means untitled hero layout
-       body       card's second tier (or hero text); "" on a titled post, so
-                   only a note ever fills it. Capped at 500 chars — a
+       body       card's second tier (or hero text); on a titled post it is
+                   the opening lines, or "" when those are what the summary
+                   already says. Capped at 500 chars — a
                    payload-safety limit bounding JSON size and render cost,
                    not the card's visual truncation. The card's actual clamp
                    is line-count based (satori lineClamp), applied Worker-side
@@ -89,14 +90,26 @@
 
 {{ if .Title }}
   {{ $headline = .Title | htmlUnescape }}
-  {{/* No second tier on a titled post. This used to be $desc, but $desc is
-       already the og:description, and the card is almost only ever seen next
-       to it — every platform that renders the image renders the description
-       beside it, so the card was spending half its area reprinting the
-       sentence directly underneath it. The title carries the post on its own:
-       card.ts draws it alone, dropping the rule along with the tier it used
-       to separate. A note keeps its text, because there the text is the whole
-       card and there is no title to carry it. */}}
+  {{/* The second tier is the post's opening lines — but only when they say
+       something $desc does not. The card is almost only ever seen beside its
+       own og:description, so where $desc came from .Summary (Hugo's auto
+       summary, which IS the opening) a second tier would reprint the sentence
+       sitting directly underneath it. Where a description or a Micro.blog
+       summary field was authored by hand, the opening is genuinely new text
+       and earns its place. Empty, card.ts draws the headline alone and drops
+       the rule with the tier it separated.
+
+       Compared with every space removed, not merely collapsed: plainify puts
+       a space in front of punctuation that closed a tag ("Bromley . Photo"
+       against the summary's "Bromley. Photo"), so a whitespace-sensitive test
+       calls the same sentence different and duplicates it anyway. 80 runes is
+       about the two lines the card actually shows, so this asks the question
+       the card asks — would the reader see the same words twice. */}}
+  {{ $opening := $content | plainify | htmlUnescape | chomp }}
+  {{ $bare := `\s+` }}
+  {{ if ne (substr (replaceRE $bare "" $opening) 0 80) (substr (replaceRE $bare "" $desc) 0 80) }}
+    {{ $body = $opening | truncate 500 "…" | htmlUnescape }}
+  {{ end }}
 {{ else }}
   {{/* Link note: first block is a paragraph holding only a link. The linked
        title is the headline; the commentary that follows is the body. This is
