@@ -4,8 +4,9 @@
 
        label      post-label.html's name for the post
        headline   card's top tier; "" means untitled hero layout
-       body       card's second tier (or hero text); capped at 500 chars —
-                   a payload-safety limit bounding JSON size and render cost,
+       body       card's second tier (or hero text); "" on a titled post, so
+                   only a note ever fills it. Capped at 500 chars — a
+                   payload-safety limit bounding JSON size and render cost,
                    not the card's visual truncation. The card's actual clamp
                    is line-count based (satori lineClamp), applied Worker-side
                    in b10g-api/src/og/card.ts; this template has no way to
@@ -34,8 +35,18 @@
 {{/* Capped for the platforms that show a description at all. truncate rather
      than substr: it cuts on a word boundary instead of mid-word, appends the
      ellipsis itself, counts runes where len counts bytes, and leaves anything
-     already short of the cap completely alone — so it needs no length guard. */}}
-{{ $desc = $desc | truncate 300 "…" }}
+     already short of the cap completely alone — so it needs no length guard.
+
+     The htmlUnescape after every truncate is not the one before it repeated.
+     Handed a plain string, truncate HTML-escapes the result and returns
+     template.HTML — even when the text was short enough that it cut nothing.
+     Left alone, an apostrophe reaches posts.json as `&#39;`, which a meta tag
+     renders back to `'` and so hides the bug, while the OG card draws the
+     entity literally. Unescaping restores both the text and the plain string
+     type, so html/template escapes these per context instead of trusting them
+     as markup. truncate counts length before escaping, so this does not move
+     the cut point. */}}
+{{ $desc = $desc | truncate 300 "…" | htmlUnescape }}
 
 {{/* Image: Micro.blog photo param > first image in the body > "" (the shipped
      square fallback is social-meta's call, not this partial's). */}}
@@ -78,7 +89,14 @@
 
 {{ if .Title }}
   {{ $headline = .Title | htmlUnescape }}
-  {{ $body = $desc | truncate 500 "…" }}
+  {{/* No second tier on a titled post. This used to be $desc, but $desc is
+       already the og:description, and the card is almost only ever seen next
+       to it — every platform that renders the image renders the description
+       beside it, so the card was spending half its area reprinting the
+       sentence directly underneath it. The title carries the post on its own:
+       card.ts draws it alone, dropping the rule along with the tier it used
+       to separate. A note keeps its text, because there the text is the whole
+       card and there is no title to carry it. */}}
 {{ else }}
   {{/* Link note: first block is a paragraph holding only a link. The linked
        title is the headline; the commentary that follows is the body. This is
@@ -88,10 +106,10 @@
   {{ with $ln }}
     {{ $headline = replaceRE `(?s)\A<p><a href="[^"]+"[^>]*>([^<]+)</a></p>.*` "$1" $content | htmlUnescape }}
     {{ $rest := replaceRE `(?s)\A<p><a[^>]*>[^<]+</a></p>\s*(.*)` "$1" $content }}
-    {{ $body = $rest | plainify | htmlUnescape | chomp | truncate 500 "…" }}
+    {{ $body = $rest | plainify | htmlUnescape | chomp | truncate 500 "…" | htmlUnescape }}
   {{ else }}
     {{/* Hero note: the text is the card. */}}
-    {{ $body = $content | plainify | htmlUnescape | chomp | truncate 500 "…" }}
+    {{ $body = $content | plainify | htmlUnescape | chomp | truncate 500 "…" | htmlUnescape }}
   {{ end }}
 {{ end }}
 

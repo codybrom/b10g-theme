@@ -23,7 +23,10 @@
 {{ with $page.Title }}{{ $label = . | htmlUnescape }}{{ end }}
 {{ if not $label }}
   {{ with $page.Content | plainify | htmlUnescape | chomp }}
-    {{ $label = . | truncate $length }}
+    {{/* The htmlUnescape after truncate undoes escaping truncate itself adds to
+         a plain string — see the long note in post-card.html. A label reaches
+         posts.json as text, where `&#39;` is wrong, not just invisible. */}}
+    {{ $label = . | truncate $length | htmlUnescape }}
   {{ end }}
 {{ end }}
 {{/* A note with no text at all — an image on its own, say. */}}
